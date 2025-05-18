@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#F6DEA2">
   <title>Shooting Score</title>
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
@@ -34,11 +34,12 @@
 		<div class="flex flex-col w-1/6 min-w-[30px]">
 		  <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
 		  <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
-		</div><!--
-		<div class="flex flex-col w-1/6 min-w-[30px]">
+		</div>
+    <!-- todo: more shots -->
+		<div class="flex flex-col w-1/6 min-w-[40px]">
 		  <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
-		  <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
-		</div>-->
+		  <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" /><span id="changeshots-confirmation" class="hidden"></span>
+		</div>
 		<div class="flex flex-col w-1/6 min-w-[30px]">
 		  <label class="text-sm text-center capitalize" id="config-mute" for="muted"><span id="config-mute-lang">Mute</span>:</label>
 		  <input type="checkbox" id="muted" class="w-full text-center w-7 h-7 rounded-sm" />
@@ -97,7 +98,7 @@
   </div>
 
   <script>
-    const maxShots = 5;// Emil ta bort när du fixat settings!
+  let maxShots = 10;// Emil ta bort när du fixat settings!
 	//let maxShots; // todo dynamic maxShots
 	const translations = {
 		"sv-SE": {
@@ -116,7 +117,8 @@
 			"previous-range-lang": "bana",
 			"next-series-lang": "serie",
 			"next-range-lang": "bana",
-			"clear-confirmation": "Ta bort ALLAS sparade poäng?"
+			"clear-confirmation": "Ta bort ALLAS sparade poäng?",
+      "changeshots-confirmation": "Ändra max skott och rensa poäng?"
 		},
 		"en-US": {
 			"config-teams": "team",
@@ -134,7 +136,8 @@
 			"previous-range-lang": "range",
 			"next-series-lang": "series",
 			"next-range-lang": "range",
-			"clear-confirmation": "Delete EVERY saved point for everyone?"
+			"clear-confirmation": "Clear ALL saved scores?",
+      "changeshots-confirmation": "Change max shots and clear scores?"
 		}
 	};
 
@@ -166,7 +169,7 @@
           document.getElementById('team-count').value = config.teamCount || 3;
           document.getElementById('series-count').value = config.seriesCount || 6;
           document.getElementById('range-count').value = config.rangeCount || 8;
-          //document.getElementById('shots-count').value = config.shotsCount || 5; // todo: dynamic shots
+          document.getElementById('shots-count').value = maxShots = config.shotsCount || 5; // todo: more shots
         } catch {
           // ignore parse errors
         }
@@ -249,16 +252,30 @@
       saveAllScores(allScores);
     }
 
-	// Clear all stored scores
+    // Clear all stored scores
     function clearScores() {
-		const confirmed = confirm(translations[language]["clear-confirmation"]);
-		if (confirmed) {
-			saveAllScores({});
-			saveLastSelection(1, 1, 1);
-			applyConfiguration();
-			console.log("Resetting...");
-		}
-	}
+      const confirmed = confirm(translations[language]["clear-confirmation"]);
+      if (confirmed) {
+        saveAllScores({});
+        saveLastSelection(1, 1, 1);
+        applyConfiguration();
+        console.log("Resetting...");
+      }
+    }
+
+    // Change maxShots
+    // todo: more shots
+    function changeMaxShots() {
+      const confirmed = confirm(translations[language]["changeshots-confirmation"]);
+      if (confirmed) {
+        console.log("Changing max shots and resetting...");
+        maxShots = parseInt(document.getElementById('shots-count').value) || 5;
+        saveAllScores({});
+        saveLastSelection(1, 1, 1);
+        applyConfiguration();
+      }
+      loadCurrentShotsAndDisplay();
+    }
 
 	// Capitalize string
 	/* todo, remove if unused
@@ -271,6 +288,16 @@
       const teamCount = parseInt(document.getElementById('team-count').value) || 1;
       const seriesCount = parseInt(document.getElementById('series-count').value) || 6;
       const rangeCount = parseInt(document.getElementById('range-count').value) || 8;
+      const shotsCount = parseInt(document.getElementById('shots-count').value) || 5;
+      console.log("shotsCount: "+shotsCount+", maxShots: "+maxShots);
+      if (shotsCount !== maxShots && shotsCount > 0) {
+        changeMaxShots();
+        return;
+      } else {
+        document.getElementById('shots-count').value = maxShots;
+      }
+      maxShots = shotsCount;
+
       //const shotsCount = parseInt(document.getElementById('shots-count').value) || 5; // todo: dynamic shots
 
       //saveConfig(teamCount, seriesCount, rangeCount, shotsCount);  // todo: dynamic shots
@@ -467,7 +494,7 @@
         shots.pop();
         saveCurrentShots();
         updateDisplay();
-		playAudio("ångra");
+		    playAudio("ångra");
       }
     }
 
@@ -488,7 +515,7 @@
       if (selectedIndex > 0) {
         rangeSelect.selectedIndex--;
         loadCurrentShotsAndDisplay();
-		playAudio("bana", rangeSelect.selectedIndex+1);
+		    playAudio("bana", rangeSelect.selectedIndex+1);
       }
     }
 	
@@ -499,7 +526,7 @@
       if (selectedIndex < maxIndex) {
         rangeSelect.selectedIndex++;
         loadCurrentShotsAndDisplay();
-		playAudio("bana", rangeSelect.selectedIndex+1);
+		    playAudio("bana", rangeSelect.selectedIndex+1);
       }
     }
 	
@@ -512,10 +539,10 @@
         seriesSelect.selectedIndex--;
         rangeSelect.selectedIndex = maxRange;
         loadCurrentShotsAndDisplay();
-		playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
+		    playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
       } else {
-	  console.log("previousSeries() else. selectedIndex <= 0: "+selectedIndex);
-	  }
+	      console.log("previousSeries() else. selectedIndex <= 0: "+selectedIndex);
+	    }
     }
 	
     // Move to next series
@@ -526,15 +553,15 @@
         seriesSelect.selectedIndex++;
         rangeSelect.selectedIndex = 0;
         loadCurrentShotsAndDisplay();
-		playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
+		    playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
       }
     }
 
     // Event listeners
     document.getElementById('apply-config').addEventListener('click', applyConfiguration);
-	document.getElementById('clear-scores').addEventListener('click', clearScores);
+	  document.getElementById('clear-scores').addEventListener('click', clearScores);
     document.getElementById('toggle-settings').addEventListener('click', () => {
-      document.getElementById('settings-panel').classList.toggle('hidden');
+    document.getElementById('settings-panel').classList.toggle('hidden');
     });
 
     teamSelect.addEventListener('change', loadCurrentShotsAndDisplay);
@@ -561,7 +588,7 @@
 
   <style>
 	.btn-score {
-		@apply bg-blue-500 text-white rounded shadow-lg border-2 border-white;
+		/*@apply bg-blue-500 text-white rounded shadow-lg border-2 border-white;*/
 		padding: 1.5rem;       /* bigger vertical and horizontal padding */
 		font-size: 2.5rem;     /* bigger text */
 		user-select: none;
