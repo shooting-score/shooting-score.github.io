@@ -35,7 +35,6 @@
 		  <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
 		  <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
 		</div>
-    <!-- todo: more shots -->
 		<div class="flex flex-col w-1/6 min-w-[40px]">
 		  <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
 		  <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" /><span id="changeshots-confirmation" class="hidden"></span>
@@ -98,14 +97,13 @@
   </div>
 
   <script>
-  let maxShots = 10;// Emil ta bort när du fixat settings!
-	//let maxShots; // todo dynamic maxShots
+  let maxShots = 10;
 	const translations = {
 		"sv-SE": {
 			"config-teams-lang": "skjutlag",
 			"config-series-lang": "serier",
 			"config-ranges-lang": "banor",
-			/*"config-shots-lang": "skott",*/
+			"config-shots-lang": "skott",
 			"config-mute-lang": "tysta",
 			"clear-scores": "rensa allas poäng",
 			"apply-config": "utför",
@@ -124,7 +122,7 @@
 			"config-teams": "team",
 			"config-series": "series",
 			"config-ranges": "lanes",
-			/*"config-shots": "shots",*/
+			"config-shots": "shots",
 			"config-mute-lang": "mute",
 			"clear-scores": "clear everyones scores",
 			"apply-config": "apply",
@@ -145,7 +143,7 @@
     const seriesSelect = document.getElementById('series');
     const rangeSelect = document.getElementById('range');
 
-	let language = "sv-SE"; // "en-US"
+	  let language = "sv-SE"; // todo: dynamically change language, "en-US"
     let shots = [];
 
     // Keys for localStorage
@@ -169,7 +167,7 @@
           document.getElementById('team-count').value = config.teamCount || 3;
           document.getElementById('series-count').value = config.seriesCount || 6;
           document.getElementById('range-count').value = config.rangeCount || 8;
-          document.getElementById('shots-count').value = maxShots = config.shotsCount || 5; // todo: more shots
+          document.getElementById('shots-count').value = maxShots = config.shotsCount || 5;
         } catch {
           // ignore parse errors
         }
@@ -177,13 +175,9 @@
     }
 
     // Save config to localStorage
-	function saveConfig(teamCount, seriesCount, rangeCount) {
-      localStorage.setItem(CONFIG_KEY, JSON.stringify({ teamCount, seriesCount, rangeCount }));
-    }
-	/* // todo: dynamic shots
     function saveConfig(teamCount, seriesCount, rangeCount, shotsCount) {
       localStorage.setItem(CONFIG_KEY, JSON.stringify({ teamCount, seriesCount, rangeCount, shotsCount }));
-    }*/
+    }
 
     // Populate select options
     function populateOptions(selectElement, label, count) {
@@ -264,7 +258,6 @@
     }
 
     // Change maxShots
-    // todo: more shots
     function changeMaxShots() {
       const confirmed = confirm(translations[language]["changeshots-confirmation"]);
       if (confirmed) {
@@ -277,11 +270,11 @@
       loadCurrentShotsAndDisplay();
     }
 
-	// Capitalize string
-	/* todo, remove if unused
-	function capitalize(string) {
-	  return string.charAt(0).toUpperCase() + string.slice(1);
-	}*/
+    // Capitalize string
+    /* todo, remove if unused - maybe used in language?
+    function capitalize(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+	  }*/
 	  
     // Apply config and repopulate selects
     function applyConfiguration() {
@@ -298,23 +291,23 @@
       }
       maxShots = shotsCount;
 
-      //const shotsCount = parseInt(document.getElementById('shots-count').value) || 5; // todo: dynamic shots
+      // Save config to localStorage
+      saveConfig(teamCount, seriesCount, rangeCount, shotsCount);  // todo: dynamic shots
 
-      //saveConfig(teamCount, seriesCount, rangeCount, shotsCount);  // todo: dynamic shots
-	  saveConfig(teamCount, seriesCount, rangeCount);
-/* todo: fix this
+      /* todo: fix this / language
       populateOptions(teamSelect, capitalize(translations[language][config-teams-lang]), teamCount);
       populateOptions(seriesSelect, capitalize(translations[language][config-series-lang]), seriesCount);
       populateOptions(rangeSelect, capitalize(translations[language][config-range-lang]), rangeCount);
-	  */
+	    */
+      // todo: populate dropdowns with language
       populateOptions(teamSelect, 'Skjutlag', teamCount);
       populateOptions(seriesSelect, 'Serie', seriesCount);
       populateOptions(rangeSelect, 'Bana', rangeCount);
-/* todo: tabort
+      /* todo: tabort / language
       populateOptions(teamSelect, 'Team', teamCount);
       populateOptions(seriesSelect, 'Series', seriesCount);
       populateOptions(rangeSelect, 'Range', rangeCount);
-*/
+      */
 	  
       // After changing options, restore last selection if still valid
       const lastSel = loadLastSelection();
@@ -333,24 +326,20 @@
 	  document.getElementById('settings-panel').classList.toggle('hidden', true);
     }
 	
-	// Change language
-	function applyLanguage() {
-		language = (!(language in translations)?"sv-SE":language);	// Set to sv-SE if missing language
-		Object.keys(translations[language]).forEach(function(word) {
-		  try {
-			document.getElementById(word).innerHTML = translations[language][word];
-		  }
-		  catch(err) {
-			console.log("Error! word("+word+") Error: "+err.message);
-		  }
-		  //console.log("key:"+word, "trans:"+translations[language][word]); //todo remove this
-		});
-	}
-	/*
-	function translate(value, index, array) {
-		console.log("V:"+value+", I:"+index+", A:"+array)
-	}*/
-
+    // Change language
+    function applyLanguage() {
+      language = (!(language in translations)?"sv-SE":language);	// Set to sv-SE if missing language
+      Object.keys(translations[language]).forEach(function(word) {
+        try {
+        document.getElementById(word).innerHTML = translations[language][word];
+        }
+        catch(err) {
+        console.log("Error! word("+word+") Error: "+err.message);
+        }
+        //console.log("key:"+word, "trans:"+translations[language][word]); //todo remove this when language is fixed
+      });
+    }
+	
     // Load current shots from storage and update display
     function loadCurrentShotsAndDisplay() {
       const team = parseInt(teamSelect.value);
@@ -362,38 +351,32 @@
       saveLastSelection(team, series, range);
     }
 	
-	// Count series Total
-	function seriesTotal() {
-		let total = shots.reduce((sum, val) => {
-			if (val === 'X') return sum + 10;
-			const num = parseInt(val);
-			return sum + (isNaN(num) ? 0 : num);
-		}, 0);
-		return total;
-	}
-	
-	function bullsEyes() {
-		let x = shots.reduce((sum, val) => {
-			if (val === 'X') return sum + 1;
-		}, 0);
-		return x;
-	}
-	
-    // Update display elements
-    function updateDisplay() {
-      const display = shots.concat(Array(maxShots - shots.length).fill('_')).join(' ');
-      //document.getElementById('shots-display').textContent = 'Shots: ' + display;
-	  document.getElementById('shots-display').textContent = ': ' + display;
-	  /* todo: tabort
+    // Count series total
+    function seriesTotal() {
       let total = shots.reduce((sum, val) => {
         if (val === 'X') return sum + 10;
         const num = parseInt(val);
         return sum + (isNaN(num) ? 0 : num);
-      }, 0);*/
-	  let total = seriesTotal();
+      }, 0);
+      return total;
+    }
+    
+    // Count pure bulls eyes (X)
+    function bullsEyes() {
+      let x = shots.reduce((sum, val) => {
+        if (val === 'X') return sum + 1;
+      }, 0);
+      return x;
+    }
+	
+    // Update display elements
+    function updateDisplay() {
+      const display = shots.concat(Array(maxShots - shots.length).fill('_')).join(' ');
+	    
+      let total = seriesTotal();
 
-      //document.getElementById('series-total').textContent = 'Series Total: ' + total;
-	  document.getElementById('series-total').textContent = ': ' + total;
+  	  document.getElementById('shots-display').textContent = ': ' + display;
+	    document.getElementById('series-total').textContent = ': ' + total;
 
       // Calculate total for all series in current range and team
       const allScores = loadAllScores();
@@ -412,61 +395,37 @@
           }
         }
       }
-      //document.getElementById('range-total').textContent = 'Range Total: ' + rangeTotal;
-	  document.getElementById('range-total').textContent = ': ' + rangeTotal;
+  	  document.getElementById('range-total').textContent = ': ' + rangeTotal;
 	  
-	  // Toggling buttons visibility
-	  document.getElementById('previous-series').classList.toggle('hidden', parseInt(rangeSelect.value) > 1 || parseInt(seriesSelect.value) == 1);
+      // Toggling buttons visibility
+      document.getElementById('previous-series').classList.toggle('hidden', parseInt(rangeSelect.value) > 1 || parseInt(seriesSelect.value) == 1);
 	  
-      document.getElementById('previous-range').classList.toggle('hidden', parseInt(rangeSelect.value) == 1/* || parseInt(seriesSelect.value) == 1*/); // todo: tabort kommentar
+      document.getElementById('previous-range').classList.toggle('hidden', parseInt(rangeSelect.value) == 1);
 	  
       document.getElementById('next-range').classList.toggle('hidden', parseInt(rangeSelect.value) == parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == parseInt(document.getElementById('range-count').value));
 	  
       document.getElementById('next-series').classList.toggle('hidden', parseInt(rangeSelect.value) < parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == document.getElementById('series-count').value);
 	  
     }
-	/*
-	// todo: tabort kommentar
-	// Play score
-	function playScore(score) {
-		//const audio document.getElementById('score-audio');
-		//console.log("score: "+score);
-		//audio.src = 'audio/${score}.mp3';
-		const audio = new Audio("audio/"+score+".mp3");
-		audio.play();
-	}
 	
-	// Play series total
-	function playSeriesTotal(score) {
-		const audio1 = new Audio("audio/"+score+".mp3");
-		const audio2 = new Audio("audio/poäng.mp3");
-		
-		audio1.addEventListener("ended", function() {
-			audio2.play();
-		});
-		
-		audio1.play();
-	}*/
-	
-	// Play audio files (hits, series total etc)
-	function playAudio(...filenames) {
-		const audioFolder = "audio/";
-		let index = 0;
-		if (!document.getElementById("muted").checked) {
-		
-			function playNext() {
-				if (index < filenames.length) {
-					const audio = new Audio(`${audioFolder}${filenames[index]}.mp3`);
-					index++;
-					audio.addEventListener("ended", playNext);
-					audio.play();
-				}
-			}
+    // Play audio files (hits, series total etc)
+    function playAudio(...filenames) {
+      const audioFolder = "audio/";
+      let index = 0;
+      if (!document.getElementById("muted").checked) {
+      
+        function playNext() {
+          if (index < filenames.length) {
+            const audio = new Audio(`${audioFolder}${filenames[index]}.mp3`);
+            index++;
+            audio.addEventListener("ended", playNext);
+            audio.play();
+          }
+        }
 
-		playNext();
-		}
-	}
-
+      playNext();
+      }
+    }
 
     // Add score
     function addScore(score) {
@@ -583,12 +542,11 @@
     // Initial load
     loadConfig();
     applyConfiguration();
-	applyLanguage(); // todo: fixa språk?
+	  applyLanguage(); // todo: fixa dynamiskt byte av språk 
   </script>
 
   <style>
 	.btn-score {
-		/*@apply bg-blue-500 text-white rounded shadow-lg border-2 border-white;*/
 		padding: 1.5rem;       /* bigger vertical and horizontal padding */
 		font-size: 2.5rem;     /* bigger text */
 		user-select: none;
