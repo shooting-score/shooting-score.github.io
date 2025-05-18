@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#F6DEA2">
+  <title>Shooting Score</title>
+  <link rel="manifest" href="/manifest.json" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+  <div class="max-w-md mx-auto flex flex-col h-screen p-2">
+
+    <!-- Settings Toggle -->
+    <div class="flex justify-end mb-2">
+      <button id="toggle-settings" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3a.75.75 0 00-1.5 0v1.063a7.518 7.518 0 00-1.69.982L5.53 3.97a.75.75 0 00-1.06 1.06l1.075 1.03a7.518 7.518 0 00-.982 1.69H3a.75.75 0 000 1.5h1.063a7.518 7.518 0 00.982 1.69L3.97 13.47a.75.75 0 101.06 1.06l1.03-1.075a7.518 7.518 0 001.69.982V15a.75.75 0 001.5 0v-1.063a7.518 7.518 0 001.69-.982l1.03 1.075a.75.75 0 101.06-1.06l-1.075-1.03a7.518 7.518 0 00.982-1.69H15a.75.75 0 000-1.5h-1.063a7.518 7.518 0 00-.982-1.69l1.075-1.03a.75.75 0 10-1.06-1.06l-1.03 1.075a7.518 7.518 0 00-1.69-.982V3z" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Config Controls -->
+	<div id="settings-panel" class="mb-2 hidden dark:text-gray-400">
+	  <div class="flex flex-wrap gap-2 justify-end">
+		<div class="flex flex-col w-1/5 min-w-[30px]">
+		  <label class="text-sm text-center capitalize" id="config-teams"><span id="config-teams-lang">Teams</span>:</label>
+		  <input type="number" id="team-count" value="3" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+		</div>
+		<div class="flex flex-col w-1/6 min-w-[30px]">
+		  <label class="text-sm text-center capitalize" id="config-series"><span id="config-series-lang">Series</span>:</label>
+		  <input type="number" id="series-count" value="6" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+		</div>
+		<div class="flex flex-col w-1/6 min-w-[30px]">
+		  <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
+		  <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+		</div><!--
+		<div class="flex flex-col w-1/6 min-w-[30px]">
+		  <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
+		  <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+		</div>-->
+		<div class="flex flex-col w-1/6 min-w-[30px]">
+		  <label class="text-sm text-center capitalize" id="config-mute" for="muted"><span id="config-mute-lang">Mute</span>:</label>
+		  <input type="checkbox" id="muted" class="w-full text-center w-7 h-7 rounded-sm" />
+		</div>
+		<div class="flex">
+		  <button id="clear-scores" class="bg-red-600 text-white px-3 py-2 rounded uppercase">Clear scores</button><span id="clear-confirmation" class="hidden"></span>
+		</div>
+		<div class="flex items-end">
+		  <button id="apply-config" class="bg-blue-600 text-white px-3 py-2 rounded uppercase">Apply</button>
+		</div>
+	  </div>
+	</div>
+
+
+    <!-- Top Controls -->
+    <div class="flex justify-between mb-2">
+      <select class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950" id="team"></select>
+      <select class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950" id="series"></select>
+      <select class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950" id="range"></select>
+    </div>
+
+    <!-- Score Display -->
+    <div class="bg-white rounded shadow p-4 mb-2 text-center dark:bg-slate-600 dark:text-gray-300">
+      <div class="text-lg mb-2 dark:text-gray-850"><span class="capitalize" id="shots-display-lang">shots</span><span id="shots-display">: _ _ _ _ _</span></div>
+      <div class="text-xl font-bold uppercase dark:text-gray-850"><span id="series-total-lang">Series Total</span><span id="series-total">: 0</span></div>
+      <div class="text-sm font-bold text-gray-600 uppercase dark:text-gray-400"><span id="range-total-lang">Range Total</span><span id="range-total">: 0</span></div>
+    </div>
+	
+    <!-- Spacer -->
+    <div class="flex-1" style="flex-grow: 0.33;"></div>
+
+    <!-- Score Buttons -->
+	<div class="grid grid-cols-4 gap-3 mb-2">
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="3">3</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="2">2</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="1">1</button>
+      <button class="btn-score bg-red-600 text-white rounded shadow-lg border-0 border-black" data-score="-">-</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="4">4</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="5">5</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="6">6</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="7">7</button>
+      <button class="btn-score bg-yellow-500 text-white rounded shadow-lg border-0 border-black" data-score="X">X</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="10">10</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="9">9</button>
+      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="8">8</button>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="flex justify-between">
+      <button id="undo" class="bg-red-600 text-white px-4 py-4 rounded uppercase">Undo</button>
+      <button id="previous-series" class="bg-purple-500 text-white px-4 py-4 rounded uppercase">&larr; <span id="previous-series-lang">series</span></button>
+      <button id="previous-range" class="bg-green-600 text-white px-4 py-4 rounded uppercase">&larr; <span id="previous-range-lang">range</span></button>
+      <button id="next-range" class="bg-green-600 text-white px-4 py-4 rounded uppercase"><span id="next-range-lang">range</span> &rarr;</button>
+      <button id="next-series" class="bg-purple-500 text-white px-4 py-4 rounded uppercase"><span id="next-series-lang">series</span> &rarr;</button>
+    </div>
+  </div>
+
+  <script>
+    const maxShots = 5;// Emil ta bort när du fixat settings!
+	//let maxShots; // todo dynamic maxShots
+	const translations = {
+		"sv-SE": {
+			"config-teams-lang": "skjutlag",
+			"config-series-lang": "serier",
+			"config-ranges-lang": "banor",
+			/*"config-shots-lang": "skott",*/
+			"config-mute-lang": "tysta",
+			"clear-scores": "rensa allas poäng",
+			"apply-config": "utför",
+			"shots-display-lang": "träffar",
+			"series-total-lang": "summa serie",
+			"range-total-lang": "summa bana",
+			"undo": "ångra",
+			"previous-series-lang": "serie",
+			"previous-range-lang": "bana",
+			"next-series-lang": "serie",
+			"next-range-lang": "bana",
+			"clear-confirmation": "Ta bort ALLAS sparade poäng?"
+		},
+		"en-US": {
+			"config-teams": "team",
+			"config-series": "series",
+			"config-ranges": "lanes",
+			/*"config-shots": "shots",*/
+			"config-mute-lang": "mute",
+			"clear-scores": "clear everyones scores",
+			"apply-config": "apply",
+			"shots-display-lang": "hits",
+			"series-total-lang": "series score",
+			"range-total-lang": "lane score",
+			"undo": "undo",
+			"previous-series-lang": "series",
+			"previous-range-lang": "range",
+			"next-series-lang": "series",
+			"next-range-lang": "range",
+			"clear-confirmation": "Delete EVERY saved point for everyone?"
+		}
+	};
+
+    const teamSelect = document.getElementById('team');
+    const seriesSelect = document.getElementById('series');
+    const rangeSelect = document.getElementById('range');
+
+	let language = "sv-SE"; // "en-US"
+    let shots = [];
+
+    // Keys for localStorage
+    const CONFIG_KEY = 'shootingConfig';
+    const LAST_SELECTION_KEY = 'shootingLastSelection';
+    const SCORES_KEY = 'shootingScores';
+	
+	// Register service worker
+	if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('❌ SW registration failed:', err));
+    }
+	
+    // Load config from localStorage or defaults
+    function loadConfig() {
+      const saved = localStorage.getItem(CONFIG_KEY);
+      if (saved) {
+        try {
+          const config = JSON.parse(saved);
+          document.getElementById('team-count').value = config.teamCount || 3;
+          document.getElementById('series-count').value = config.seriesCount || 6;
+          document.getElementById('range-count').value = config.rangeCount || 8;
+          //document.getElementById('shots-count').value = config.shotsCount || 5; // todo: dynamic shots
+        } catch {
+          // ignore parse errors
+        }
+      }
+    }
+
+    // Save config to localStorage
+	function saveConfig(teamCount, seriesCount, rangeCount) {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify({ teamCount, seriesCount, rangeCount }));
+    }
+	/* // todo: dynamic shots
+    function saveConfig(teamCount, seriesCount, rangeCount, shotsCount) {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify({ teamCount, seriesCount, rangeCount, shotsCount }));
+    }*/
+
+    // Populate select options
+    function populateOptions(selectElement, label, count) {
+      selectElement.innerHTML = '';
+      for (let i = 1; i <= count; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `${label} ${i}`;
+        selectElement.appendChild(option);
+      }
+    }
+
+    // Load last selection from localStorage
+    function loadLastSelection() {
+      const saved = localStorage.getItem(LAST_SELECTION_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    // Save last selection to localStorage
+    function saveLastSelection(team, series, range) {
+      localStorage.setItem(LAST_SELECTION_KEY, JSON.stringify({ team, series, range }));
+    }
+
+    // Compose key for storing scores per combination
+    function scoreKey(team, series, range) {
+      return `${team}-${series}-${range}`;
+    }
+
+    // Load all scores object from localStorage
+    function loadAllScores() {
+      const saved = localStorage.getItem(SCORES_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return {};
+        }
+      }
+      return {};
+    }
+
+    // Save all scores object to localStorage
+    function saveAllScores(allScores) {
+      localStorage.setItem(SCORES_KEY, JSON.stringify(allScores));
+    }
+
+    // Load shots for current selection
+    function loadShots(team, series, range) {
+      const allScores = loadAllScores();
+      const key = scoreKey(team, series, range);
+      return allScores[key] || [];
+    }
+
+    // Save shots for current selection
+    function saveShots(team, series, range, shots) {
+      const allScores = loadAllScores();
+      const key = scoreKey(team, series, range);
+      allScores[key] = shots;
+      saveAllScores(allScores);
+    }
+
+	// Clear all stored scores
+    function clearScores() {
+		const confirmed = confirm(translations[language]["clear-confirmation"]);
+		if (confirmed) {
+			saveAllScores({});
+			saveLastSelection(1, 1, 1);
+			applyConfiguration();
+			console.log("Resetting...");
+		}
+	}
+
+	// Capitalize string
+	/* todo, remove if unused
+	function capitalize(string) {
+	  return string.charAt(0).toUpperCase() + string.slice(1);
+	}*/
+	  
+    // Apply config and repopulate selects
+    function applyConfiguration() {
+      const teamCount = parseInt(document.getElementById('team-count').value) || 1;
+      const seriesCount = parseInt(document.getElementById('series-count').value) || 6;
+      const rangeCount = parseInt(document.getElementById('range-count').value) || 8;
+      //const shotsCount = parseInt(document.getElementById('shots-count').value) || 5; // todo: dynamic shots
+
+      //saveConfig(teamCount, seriesCount, rangeCount, shotsCount);  // todo: dynamic shots
+	  saveConfig(teamCount, seriesCount, rangeCount);
+/* todo: fix this
+      populateOptions(teamSelect, capitalize(translations[language][config-teams-lang]), teamCount);
+      populateOptions(seriesSelect, capitalize(translations[language][config-series-lang]), seriesCount);
+      populateOptions(rangeSelect, capitalize(translations[language][config-range-lang]), rangeCount);
+	  */
+      populateOptions(teamSelect, 'Skjutlag', teamCount);
+      populateOptions(seriesSelect, 'Serie', seriesCount);
+      populateOptions(rangeSelect, 'Bana', rangeCount);
+/* todo: tabort
+      populateOptions(teamSelect, 'Team', teamCount);
+      populateOptions(seriesSelect, 'Series', seriesCount);
+      populateOptions(rangeSelect, 'Range', rangeCount);
+*/
+	  
+      // After changing options, restore last selection if still valid
+      const lastSel = loadLastSelection();
+      if (lastSel) {
+        if (lastSel.team <= teamCount) teamSelect.value = lastSel.team;
+        if (lastSel.series <= seriesCount) seriesSelect.value = lastSel.series;
+        if (lastSel.range <= rangeCount) rangeSelect.value = lastSel.range;
+      } else {
+        // default selects
+        teamSelect.selectedIndex = 0;
+        seriesSelect.selectedIndex = 0;
+        rangeSelect.selectedIndex = 0;
+      }
+
+      loadCurrentShotsAndDisplay();
+	  document.getElementById('settings-panel').classList.toggle('hidden', true);
+    }
+	
+	// Change language
+	function applyLanguage() {
+		language = (!(language in translations)?"sv-SE":language);	// Set to sv-SE if missing language
+		Object.keys(translations[language]).forEach(function(word) {
+		  try {
+			document.getElementById(word).innerHTML = translations[language][word];
+		  }
+		  catch(err) {
+			console.log("Error! word("+word+") Error: "+err.message);
+		  }
+		  //console.log("key:"+word, "trans:"+translations[language][word]); //todo remove this
+		});
+	}
+	/*
+	function translate(value, index, array) {
+		console.log("V:"+value+", I:"+index+", A:"+array)
+	}*/
+
+    // Load current shots from storage and update display
+    function loadCurrentShotsAndDisplay() {
+      const team = parseInt(teamSelect.value);
+      const series = parseInt(seriesSelect.value);
+      const range = parseInt(rangeSelect.value);
+
+      shots = loadShots(team, series, range);
+      updateDisplay();
+      saveLastSelection(team, series, range);
+    }
+	
+	// Count series Total
+	function seriesTotal() {
+		let total = shots.reduce((sum, val) => {
+			if (val === 'X') return sum + 10;
+			const num = parseInt(val);
+			return sum + (isNaN(num) ? 0 : num);
+		}, 0);
+		return total;
+	}
+	
+	function bullsEyes() {
+		let x = shots.reduce((sum, val) => {
+			if (val === 'X') return sum + 1;
+		}, 0);
+		return x;
+	}
+	
+    // Update display elements
+    function updateDisplay() {
+      const display = shots.concat(Array(maxShots - shots.length).fill('_')).join(' ');
+      //document.getElementById('shots-display').textContent = 'Shots: ' + display;
+	  document.getElementById('shots-display').textContent = ': ' + display;
+	  /* todo: tabort
+      let total = shots.reduce((sum, val) => {
+        if (val === 'X') return sum + 10;
+        const num = parseInt(val);
+        return sum + (isNaN(num) ? 0 : num);
+      }, 0);*/
+	  let total = seriesTotal();
+
+      //document.getElementById('series-total').textContent = 'Series Total: ' + total;
+	  document.getElementById('series-total').textContent = ': ' + total;
+
+      // Calculate total for all series in current range and team
+      const allScores = loadAllScores();
+      let rangeTotal = 0;
+      const team = parseInt(teamSelect.value);
+      const range = parseInt(rangeSelect.value);
+      for (const key in allScores) {
+        if (key.startsWith(`${team}-`) && key.endsWith(`-${range}`)) {
+          const s = allScores[key];
+          if (Array.isArray(s)) {
+            rangeTotal += s.reduce((sum, val) => {
+              if (val === 'X') return sum + 10;
+              const n = parseInt(val);
+              return sum + (isNaN(n) ? 0 : n);
+            }, 0);
+          }
+        }
+      }
+      //document.getElementById('range-total').textContent = 'Range Total: ' + rangeTotal;
+	  document.getElementById('range-total').textContent = ': ' + rangeTotal;
+	  
+	  // Toggling buttons visibility
+	  document.getElementById('previous-series').classList.toggle('hidden', parseInt(rangeSelect.value) > 1 || parseInt(seriesSelect.value) == 1);
+	  
+      document.getElementById('previous-range').classList.toggle('hidden', parseInt(rangeSelect.value) == 1/* || parseInt(seriesSelect.value) == 1*/); // todo: tabort kommentar
+	  
+      document.getElementById('next-range').classList.toggle('hidden', parseInt(rangeSelect.value) == parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == parseInt(document.getElementById('range-count').value));
+	  
+      document.getElementById('next-series').classList.toggle('hidden', parseInt(rangeSelect.value) < parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == document.getElementById('series-count').value);
+	  
+    }
+	/*
+	// todo: tabort kommentar
+	// Play score
+	function playScore(score) {
+		//const audio document.getElementById('score-audio');
+		//console.log("score: "+score);
+		//audio.src = 'audio/${score}.mp3';
+		const audio = new Audio("audio/"+score+".mp3");
+		audio.play();
+	}
+	
+	// Play series total
+	function playSeriesTotal(score) {
+		const audio1 = new Audio("audio/"+score+".mp3");
+		const audio2 = new Audio("audio/poäng.mp3");
+		
+		audio1.addEventListener("ended", function() {
+			audio2.play();
+		});
+		
+		audio1.play();
+	}*/
+	
+	// Play audio files (hits, series total etc)
+	function playAudio(...filenames) {
+		const audioFolder = "audio/";
+		let index = 0;
+		if (!document.getElementById("muted").checked) {
+		
+			function playNext() {
+				if (index < filenames.length) {
+					const audio = new Audio(`${audioFolder}${filenames[index]}.mp3`);
+					index++;
+					audio.addEventListener("ended", playNext);
+					audio.play();
+				}
+			}
+
+		playNext();
+		}
+	}
+
+
+    // Add score
+    function addScore(score) {
+      if (shots.length < maxShots) {
+        shots.push(score);
+		if (shots.length === maxShots) {
+			let total = seriesTotal();
+			if (total == 10*maxShots) {
+				playAudio(score, "serie", "totalt", total, "poäng", (bullsEyes() == maxShots?"airhorn":"nice"));
+			}
+			else {
+				playAudio(score, "serie", "totalt", total, "poäng");
+			}
+		} else {
+			playAudio(score);
+		}
+        saveCurrentShots();
+        updateDisplay();
+      }
+    }
+
+    // Undo last score
+    function undoScore() {
+      if (shots.length > 0) {
+        shots.pop();
+        saveCurrentShots();
+        updateDisplay();
+		playAudio("ångra");
+      }
+    }
+
+    // Save current shots to localStorage
+    function saveCurrentShots() {
+      const team = parseInt(teamSelect.value);
+      const series = parseInt(seriesSelect.value);
+      const range = parseInt(rangeSelect.value);
+      saveShots(team, series, range, shots);
+      saveLastSelection(team, series, range);
+    }
+	
+    // Move to previous range
+	
+    function previousRange() {
+      const selectedIndex = rangeSelect.selectedIndex;
+      const maxIndex = rangeSelect.options.length - 1;
+      if (selectedIndex > 0) {
+        rangeSelect.selectedIndex--;
+        loadCurrentShotsAndDisplay();
+		playAudio("bana", rangeSelect.selectedIndex+1);
+      }
+    }
+	
+    // Move to next range
+    function nextRange() {
+      const selectedIndex = rangeSelect.selectedIndex;
+      const maxIndex = rangeSelect.options.length - 1;
+      if (selectedIndex < maxIndex) {
+        rangeSelect.selectedIndex++;
+        loadCurrentShotsAndDisplay();
+		playAudio("bana", rangeSelect.selectedIndex+1);
+      }
+    }
+	
+    // Move to previous series
+    function previousSeries() {
+      const selectedIndex = seriesSelect.selectedIndex;
+      const maxIndex = seriesSelect.options.length - 1;
+      const maxRange = rangeSelect.options.length - 1;
+      if (selectedIndex > 0) {
+        seriesSelect.selectedIndex--;
+        rangeSelect.selectedIndex = maxRange;
+        loadCurrentShotsAndDisplay();
+		playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
+      } else {
+	  console.log("previousSeries() else. selectedIndex <= 0: "+selectedIndex);
+	  }
+    }
+	
+    // Move to next series
+    function nextSeries() {
+      const selectedIndex = seriesSelect.selectedIndex;
+      const maxIndex = seriesSelect.options.length - 1;
+      if (selectedIndex < maxIndex) {
+        seriesSelect.selectedIndex++;
+        rangeSelect.selectedIndex = 0;
+        loadCurrentShotsAndDisplay();
+		playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('apply-config').addEventListener('click', applyConfiguration);
+	document.getElementById('clear-scores').addEventListener('click', clearScores);
+    document.getElementById('toggle-settings').addEventListener('click', () => {
+      document.getElementById('settings-panel').classList.toggle('hidden');
+    });
+
+    teamSelect.addEventListener('change', loadCurrentShotsAndDisplay);
+    seriesSelect.addEventListener('change', loadCurrentShotsAndDisplay);
+    rangeSelect.addEventListener('change', loadCurrentShotsAndDisplay);
+
+    document.querySelectorAll('.btn-score').forEach(button => {
+      button.addEventListener('click', () => {
+        addScore(button.dataset.score);
+      });
+    });
+
+    document.getElementById('undo').addEventListener('click', undoScore);
+    document.getElementById('previous-series').addEventListener('click', previousSeries);
+    document.getElementById('previous-range').addEventListener('click', previousRange);
+    document.getElementById('next-range').addEventListener('click', nextRange);
+    document.getElementById('next-series').addEventListener('click', nextSeries);
+
+    // Initial load
+    loadConfig();
+    applyConfiguration();
+	applyLanguage(); // todo: fixa språk?
+  </script>
+
+  <style>
+	.btn-score {
+		@apply bg-blue-500 text-white rounded shadow-lg border-2 border-white;
+		padding: 1.5rem;       /* bigger vertical and horizontal padding */
+		font-size: 2.5rem;     /* bigger text */
+		user-select: none;
+		align-items: center;
+		justify-content: center;
+		display: flex;
+	}
+  </style>
+</body>
+</html>

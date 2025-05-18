@@ -1,0 +1,25 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rectangle -->
+  <rect width="100%" height="100%" fill="black" />
+  
+  <!-- Full target background in beige -->
+  <circle cx="50" cy="50" r="48" fill="#F6DEA2" stroke="black" stroke-width="1"/>
+
+  <!-- Black center covering rings 7 to 10 -->
+  <circle cx="50" cy="50" r="24" fill="black" />
+
+  <!-- Borders for black rings (7–10) in beige -->
+  <circle cx="50" cy="50" r="24" fill="none" stroke="#F6DEA2" stroke-width="0.5"/>
+  <circle cx="50" cy="50" r="19" fill="none" stroke="#F6DEA2" stroke-width="0.5"/>
+  <circle cx="50" cy="50" r="14" fill="none" stroke="#F6DEA2" stroke-width="0.5"/>
+  <circle cx="50" cy="50" r="9"  fill="none" stroke="#F6DEA2" stroke-width="0.5"/>
+
+  <!-- Borders for beige outer rings (1–6) in black -->
+  <circle cx="50" cy="50" r="44" fill="none" stroke="black" stroke-width="0.5"/>
+  <circle cx="50" cy="50" r="39" fill="none" stroke="black" stroke-width="0.5"/>
+  <circle cx="50" cy="50" r="34" fill="none" stroke="black" stroke-width="0.5"/>
+  <circle cx="50" cy="50" r="29" fill="none" stroke="black" stroke-width="0.5"/>
+
+  <!-- Inner 11th ring (X-ring) -->
+  <circle cx="50" cy="50" r="4" fill="none" stroke="#F6DEA2" stroke-width="0.5"/>
+</svg>
