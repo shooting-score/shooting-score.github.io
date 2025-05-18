@@ -10,7 +10,6 @@
 </head>
 <body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
   <div class="max-w-md mx-auto flex flex-col h-screen p-2">
-
     <!-- Settings Toggle -->
     <div class="flex justify-end mb-2">
       <button id="toggle-settings" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
@@ -55,9 +54,10 @@
 
     <!-- Top Controls -->
     <div class="flex justify-between mb-2">
-      <select class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950" id="team"></select>
-      <select class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950" id="series"></select>
-      <select class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950" id="range"></select>
+      <button id="results-btn" class="bg-yellow-600 text-white px-3 py-2 rounded uppercase">Results</button>
+      <select id="team" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
+      <select id="series" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
+      <select id="range" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
     </div>
 
     <!-- Score Display -->
@@ -93,6 +93,17 @@
       <button id="previous-range" class="bg-green-600 text-white px-4 py-4 rounded uppercase">&larr; <span id="previous-range-lang">range</span></button>
       <button id="next-range" class="bg-green-600 text-white px-4 py-4 rounded uppercase"><span id="next-range-lang">range</span> &rarr;</button>
       <button id="next-series" class="bg-purple-500 text-white px-4 py-4 rounded uppercase"><span id="next-series-lang">series</span> &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Results-page -->
+  <div id="results-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded shadow-lg p-4 max-w-full w-[98vw] max-h-[90vh] overflow-auto">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-lg font-bold">Results</h2>
+        <button id="close-results" class="text-red-600 font-bold text-xl">&times;</button>
+      </div>
+      <div id="results-table" class="overflow-x-auto"></div>
     </div>
   </div>
 
@@ -515,6 +526,62 @@
 		    playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
       }
     }
+    
+    // Show results table
+    function showResultsTable() {
+      const allScores = loadAllScores();
+      const config = {
+        teamCount: parseInt(document.getElementById('team-count').value) || 1,
+        seriesCount: parseInt(document.getElementById('series-count').value) || 6,
+        rangeCount: parseInt(document.getElementById('range-count').value) || 8,
+        shotsCount: parseInt(document.getElementById('shots-count').value) || 5
+      };
+
+      let html = '<table class="min-w-full border text-center text-sm">';
+      // Header
+      html += '<thead><tr><th class="border px-1 py-1">Team</th><th class="border px-1 py-1">Range</th>';
+      for (let s = 1; s <= config.seriesCount; s++) {
+        html += `<th class="border px-1 py-1">S${s}</th>`;
+      }
+      html += '<th class="border px-1 py-1">Total</th></tr></thead><tbody>';
+
+      // Rows
+      for (let t = 1; t <= config.teamCount; t++) {
+        for (let r = 1; r <= config.rangeCount; r++) {
+          let hasAnyScore = false;
+          let row = `<tr><td class="border px-1 py-1">${t}</td><td class="border px-1 py-1">${r}</td>`;
+          let grandTotal = 0;
+          for (let s = 1; s <= config.seriesCount; s++) {
+            const key = `${t}-${s}-${r}`;
+            const shots = allScores[key] || [];
+            let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
+            if (shots.length > 0) hasAnyScore = true;
+            grandTotal += total;
+            let tooltip = shots.map((hit, i) => `#${i+1}: ${hit}`).join(', ');
+            row += `<td class="border px-1 py-1 relative group">
+              <span class="cursor-pointer" title="${tooltip}">${total}</span>
+            </td>`;
+          }
+          row += `<td class="border px-1 py-1 font-bold">${grandTotal}</td></tr>`;
+          if (hasAnyScore) html += row;
+        }
+      }
+      html += '</tbody></table>';
+
+      document.getElementById('results-table').innerHTML = html;
+      document.getElementById('results-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('results-btn').addEventListener('click', showResultsTable);
+    document.getElementById('close-results').addEventListener('click', () => {
+      document.getElementById('results-modal').classList.add('hidden');
+    });
+    // Hide results modal when clicking outside the modal content
+    document.getElementById('results-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.add('hidden');
+      }
+    });
 
     // Event listeners
     document.getElementById('apply-config').addEventListener('click', applyConfiguration);
@@ -522,7 +589,6 @@
     document.getElementById('toggle-settings').addEventListener('click', () => {
     document.getElementById('settings-panel').classList.toggle('hidden');
     });
-
     teamSelect.addEventListener('change', loadCurrentShotsAndDisplay);
     seriesSelect.addEventListener('change', loadCurrentShotsAndDisplay);
     rangeSelect.addEventListener('change', loadCurrentShotsAndDisplay);
