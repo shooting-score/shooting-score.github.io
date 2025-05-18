@@ -21,34 +21,37 @@
     </div>
 
     <!-- Config Controls -->
-	<div id="settings-panel" class="mb-2 hidden dark:text-gray-400">
+	<div id="settings-panel" class="mb-2 dark:text-gray-400 hidden">
 	  <div class="flex flex-wrap gap-2 justify-end">
-		<div class="flex flex-col w-1/5 min-w-[30px]">
-		  <label class="text-sm text-center capitalize" id="config-teams"><span id="config-teams-lang">Teams</span>:</label>
-		  <input type="number" id="team-count" value="3" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
-		</div>
-		<div class="flex flex-col w-1/6 min-w-[30px]">
-		  <label class="text-sm text-center capitalize" id="config-series"><span id="config-series-lang">Series</span>:</label>
-		  <input type="number" id="series-count" value="6" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
-		</div>
-		<div class="flex flex-col w-1/6 min-w-[30px]">
-		  <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
-		  <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
-		</div>
-		<div class="flex flex-col w-1/6 min-w-[40px]">
-		  <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
-		  <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" /><span id="changeshots-confirmation" class="hidden"></span>
-		</div>
-		<div class="flex flex-col w-1/6 min-w-[30px]">
-		  <label class="text-sm text-center capitalize" id="config-mute" for="muted"><span id="config-mute-lang">Mute</span>:</label>
-		  <input type="checkbox" id="muted" class="w-full text-center w-7 h-7 rounded-sm" />
-		</div>
-		<div class="flex">
-		  <button id="clear-scores" class="bg-red-600 text-white px-3 py-2 rounded uppercase">Clear scores</button><span id="clear-confirmation" class="hidden"></span>
-		</div>
-		<div class="flex items-end">
-		  <button id="apply-config" class="bg-blue-600 text-white px-3 py-2 rounded uppercase">Apply</button>
-		</div>
+      <div class="flex flex-col w-1/5 min-w-[30px]">
+        <label class="text-sm text-center capitalize" id="config-teams"><span id="config-teams-lang">Teams</span>:</label>
+        <input type="number" id="team-count" value="3" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+      </div>
+      <div class="flex flex-col w-1/6 min-w-[30px]">
+        <label class="text-sm text-center capitalize" id="config-series"><span id="config-series-lang">Series</span>:</label>
+        <input type="number" id="series-count" value="6" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+      </div>
+      <div class="flex flex-col w-1/6 min-w-[30px]">
+        <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
+        <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+      </div>
+      <div class="flex flex-col w-1/6 min-w-[30px]">
+        <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
+        <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" /><span id="changeshots-confirmation" class="hidden"></span>
+      </div>
+      <div class="flex flex-col w-1/6 min-w-[30px]">
+        <label class="text-sm text-center capitalize" id="config-mute" for="muted"><span id="config-mute-lang">Mute</span>:</label>
+        <input type="checkbox" id="muted" class="w-full text-center w-7 h-7 rounded-sm" />
+      </div>
+      <div class="flex items-end">
+        <button id="export-csv" class="bg-green-600 text-white px-3 py-2 rounded uppercase">Export</button>
+      </div>
+      <div class="flex">
+        <button id="clear-scores" class="bg-red-600 text-white px-3 py-2 rounded uppercase">Clear scores</button><span id="clear-confirmation" class="hidden"></span>
+      </div>
+      <div class="flex items-end">
+        <button id="apply-config" class="bg-blue-600 text-white px-3 py-2 rounded uppercase">Apply</button>
+      </div>
 	  </div>
 	</div>
 
@@ -516,7 +519,74 @@
       }
     }
 
+    // Export all scores as CSV
+    function exportScoresAsCSV() {
+      const allScores = loadAllScores();
+      const config = {
+        teamCount: parseInt(document.getElementById('team-count').value) || 1,
+        seriesCount: parseInt(document.getElementById('series-count').value) || 6,
+        rangeCount: parseInt(document.getElementById('range-count').value) || 8,
+        shotsCount: parseInt(document.getElementById('shots-count').value) || 5
+      };
+
+      // Build header
+      let header = ['Team', 'Range'];
+      for (let s = 1; s <= config.seriesCount; s++) header.push(`S${s}`);
+      header.push('Series total', '');
+      for (let s = 1; s <= config.seriesCount; s++) {
+        for (let i = 1; i <= config.shotsCount; i++) header.push(`S${s}-${i}`);
+        header.push(`S${s}-total`);
+      }
+      let csv = header.join(';') + '\n';
+
+      // Build rows
+      for (let t = 1; t <= config.teamCount; t++) {
+        for (let r = 1; r <= config.rangeCount; r++) {
+          let row = [t, r];
+          let seriesTotals = [];
+          let allShots = [];
+          let grandTotal = 0;
+
+          // Series totals
+          for (let s = 1; s <= config.seriesCount; s++) {
+            const key = `${t}-${s}-${r}`;
+            const shots = allScores[key] || [];
+            let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
+            seriesTotals.push(total);
+            grandTotal += total;
+          }
+          row.push(...seriesTotals);
+          row.push(grandTotal, '');
+
+          // Detailed shots and series totals
+          for (let s = 1; s <= config.seriesCount; s++) {
+            const key = `${t}-${s}-${r}`;
+            const shots = allScores[key] || [];
+            for (let i = 0; i < config.shotsCount; i++) {
+              row.push(shots[i] !== undefined ? shots[i] : '');
+            }
+            let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
+            row.push(total);
+          }
+
+          csv += row.join(';') + '\n';
+        }
+      }
+
+      // Download CSV
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'shooting-scores.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
     // Event listeners
+    document.getElementById('export-csv').addEventListener('click', exportScoresAsCSV);
     document.getElementById('apply-config').addEventListener('click', applyConfiguration);
 	  document.getElementById('clear-scores').addEventListener('click', clearScores);
     document.getElementById('toggle-settings').addEventListener('click', () => {
