@@ -767,7 +767,7 @@
         showArrow: true, // show the bouncing arrow on the modal [Optional. Default: true] (highly recommend leaving at true as drastically affects install rates)
       });
 
-      ret = window.AddToHomeScreenInstance.show('en');        // show "add-to-homescreen" instructions to user, or do nothing if already added to homescreen
+      ret = window.AddToHomeScreenInstance.show(language.substring(0,2));        // show "add-to-homescreen" instructions to user, or do nothing if already added to homescreen
                                                               // [optional] language.  If left blank, then language is auto-decided from (1) URL param locale='..' (e.g. /?locale=es) (2) Browser language settings
       });
     </script>
