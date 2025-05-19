@@ -1,713 +1,739 @@
 <!DOCTYPE html>
 <html lang="sv">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#F6DEA2">
-  <title>Shooting Score</title>
-  <link rel="manifest" href="manifest.json" />
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-  <div class="max-w-md mx-auto flex flex-col h-screen p-2">
-    <!-- Settings Toggle -->
-    <div class="flex justify-end mb-2">
-      <button id="toggle-settings" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3a.75.75 0 00-1.5 0v1.063a7.518 7.518 0 00-1.69.982L5.53 3.97a.75.75 0 00-1.06 1.06l1.075 1.03a7.518 7.518 0 00-.982 1.69H3a.75.75 0 000 1.5h1.063a7.518 7.518 0 00.982 1.69L3.97 13.47a.75.75 0 101.06 1.06l1.03-1.075a7.518 7.518 0 001.69.982V15a.75.75 0 001.5 0v-1.063a7.518 7.518 0 001.69-.982l1.03 1.075a.75.75 0 101.06-1.06l-1.075-1.03a7.518 7.518 0 00.982-1.69H15a.75.75 0 000-1.5h-1.063a7.518 7.518 0 00-.982-1.69l1.075-1.03a.75.75 0 10-1.06-1.06l-1.03 1.075a7.518 7.518 0 00-1.69-.982V3z" />
-        </svg>
-      </button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#F6DEA2">
+    <title>Shooting Score</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add to homescreen -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.2/dist/add-to-homescreen.min.css"/>
+    <script src="https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.2/dist/add-to-homescreen.min.js"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+    <div class="max-w-md mx-auto flex flex-col h-screen p-2">
+      <!-- Settings Toggle -->
+      <div class="flex justify-end mb-2">
+        <button id="toggle-settings" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3a.75.75 0 00-1.5 0v1.063a7.518 7.518 0 00-1.69.982L5.53 3.97a.75.75 0 00-1.06 1.06l1.075 1.03a7.518 7.518 0 00-.982 1.69H3a.75.75 0 000 1.5h1.063a7.518 7.518 0 00.982 1.69L3.97 13.47a.75.75 0 101.06 1.06l1.03-1.075a7.518 7.518 0 001.69.982V15a.75.75 0 001.5 0v-1.063a7.518 7.518 0 001.69-.982l1.03 1.075a.75.75 0 101.06-1.06l-1.075-1.03a7.518 7.518 0 00.982-1.69H15a.75.75 0 000-1.5h-1.063a7.518 7.518 0 00-.982-1.69l1.075-1.03a.75.75 0 10-1.06-1.06l-1.03 1.075a7.518 7.518 0 00-1.69-.982V3z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Config Controls -->
+    <div id="settings-panel" class="mb-2 dark:text-gray-400 hidden">
+      <div class="flex flex-wrap gap-2 justify-end">
+        <div class="flex flex-col w-1/5 min-w-[30px]">
+          <label class="text-sm text-center capitalize" id="config-teams"><span id="config-teams-lang">Teams</span>:</label>
+          <input type="number" id="team-count" value="3" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+        </div>
+        <div class="flex flex-col w-1/6 min-w-[30px]">
+          <label class="text-sm text-center capitalize" id="config-series"><span id="config-series-lang">Series</span>:</label>
+          <input type="number" id="series-count" value="6" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+        </div>
+        <div class="flex flex-col w-1/6 min-w-[30px]">
+          <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
+          <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+        </div>
+        <div class="flex flex-col w-1/6 min-w-[30px]">
+          <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
+          <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" /><span id="changeshots-confirmation" class="hidden"></span>
+        </div>
+        <div class="flex flex-col w-1/6 min-w-[30px]">
+          <label class="text-sm text-center capitalize" id="config-mute" for="muted"><span id="config-mute-lang">Mute</span>:</label>
+          <input type="checkbox" id="muted" class="w-full text-center w-7 h-7 rounded-sm" />
+        </div>
+        <div class="flex items-end">
+          <button id="export-csv" class="bg-green-600 text-white px-3 py-2 rounded uppercase">Export</button>
+        </div>
+        <div class="flex">
+          <button id="clear-scores" class="bg-red-600 text-white px-3 py-2 rounded uppercase">Clear scores</button><span id="clear-confirmation" class="hidden"></span>
+        </div>
+        <div class="flex items-end">
+          <button id="apply-config" class="bg-blue-600 text-white px-3 py-2 rounded uppercase">Apply</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Config Controls -->
-  <div id="settings-panel" class="mb-2 dark:text-gray-400 hidden">
-    <div class="flex flex-wrap gap-2 justify-end">
-      <div class="flex flex-col w-1/5 min-w-[30px]">
-        <label class="text-sm text-center capitalize" id="config-teams"><span id="config-teams-lang">Teams</span>:</label>
-        <input type="number" id="team-count" value="3" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+      <!-- Top Controls -->
+      <div class="flex justify-between mb-2">
+        <button id="results-btn" class="bg-yellow-600 text-white px-3 py-2 rounded uppercase">Results</button>
+        <select id="team" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
+        <select id="series" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
+        <select id="range" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
       </div>
-      <div class="flex flex-col w-1/6 min-w-[30px]">
-        <label class="text-sm text-center capitalize" id="config-series"><span id="config-series-lang">Series</span>:</label>
-        <input type="number" id="series-count" value="6" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+
+      <!-- Score Display -->
+      <div class="bg-white rounded shadow p-4 mb-2 text-center dark:bg-slate-600 dark:text-gray-300">
+        <div class="text-lg mb-2 dark:text-gray-850"><span class="capitalize" id="shots-display-lang">shots</span><span id="shots-display">: _ _ _ _ _</span></div>
+        <div class="text-xl font-bold uppercase dark:text-gray-850"><span id="series-total-lang">Series Total</span><span id="series-total">: 0</span></div>
+        <div class="text-sm font-bold text-gray-600 uppercase dark:text-gray-400"><span id="range-total-lang">Range Total</span><span id="range-total">: 0</span></div>
       </div>
-      <div class="flex flex-col w-1/6 min-w-[30px]">
-        <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
-        <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+      
+      <!-- Spacer -->
+      <div class="flex-1" style="flex-grow: 0.33;"></div>
+      
+      <!-- Score Buttons -->
+    <div class="grid grid-cols-4 gap-3 mb-2">
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="3">3</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="2">2</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="1">1</button>
+        <button class="btn-score bg-red-600 text-white rounded shadow-lg border-0 border-black" data-score="-">-</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="4">4</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="5">5</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="6">6</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="7">7</button>
+        <button class="btn-score bg-yellow-500 text-white rounded shadow-lg border-0 border-black" data-score="X">X</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="10">10</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="9">9</button>
+        <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="8">8</button>
       </div>
-      <div class="flex flex-col w-1/6 min-w-[30px]">
-        <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
-        <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" /><span id="changeshots-confirmation" class="hidden"></span>
-      </div>
-      <div class="flex flex-col w-1/6 min-w-[30px]">
-        <label class="text-sm text-center capitalize" id="config-mute" for="muted"><span id="config-mute-lang">Mute</span>:</label>
-        <input type="checkbox" id="muted" class="w-full text-center w-7 h-7 rounded-sm" />
-      </div>
-      <div class="flex items-end">
-        <button id="export-csv" class="bg-green-600 text-white px-3 py-2 rounded uppercase">Export</button>
-      </div>
-      <div class="flex">
-        <button id="clear-scores" class="bg-red-600 text-white px-3 py-2 rounded uppercase">Clear scores</button><span id="clear-confirmation" class="hidden"></span>
-      </div>
-      <div class="flex items-end">
-        <button id="apply-config" class="bg-blue-600 text-white px-3 py-2 rounded uppercase">Apply</button>
+      
+      <!-- Bottom Actions -->
+      <div class="flex justify-between">
+        <button id="undo" class="bg-red-600 text-white px-4 py-4 rounded uppercase">Undo</button>
+        <button id="previous-series" class="bg-purple-500 text-white px-4 py-4 rounded uppercase">&larr; <span id="previous-series-lang">series</span></button>
+        <button id="previous-range" class="bg-green-600 text-white px-4 py-4 rounded uppercase">&larr; <span id="previous-range-lang">range</span></button>
+        <button id="next-range" class="bg-green-600 text-white px-4 py-4 rounded uppercase"><span id="next-range-lang">range</span> &rarr;</button>
+        <button id="next-series" class="bg-purple-500 text-white px-4 py-4 rounded uppercase"><span id="next-series-lang">series</span> &rarr;</button>
       </div>
     </div>
-  </div>
 
-
-    <!-- Top Controls -->
-    <div class="flex justify-between mb-2">
-      <button id="results-btn" class="bg-yellow-600 text-white px-3 py-2 rounded uppercase">Results</button>
-      <select id="team" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
-      <select id="series" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
-      <select id="range" class="p-2 rounded border dark:bg-gray-500 dark:text-slate-950 dark:border-slate-950"></select>
-    </div>
-
-    <!-- Score Display -->
-    <div class="bg-white rounded shadow p-4 mb-2 text-center dark:bg-slate-600 dark:text-gray-300">
-      <div class="text-lg mb-2 dark:text-gray-850"><span class="capitalize" id="shots-display-lang">shots</span><span id="shots-display">: _ _ _ _ _</span></div>
-      <div class="text-xl font-bold uppercase dark:text-gray-850"><span id="series-total-lang">Series Total</span><span id="series-total">: 0</span></div>
-      <div class="text-sm font-bold text-gray-600 uppercase dark:text-gray-400"><span id="range-total-lang">Range Total</span><span id="range-total">: 0</span></div>
-    </div>
-  
-    <!-- Spacer -->
-    <div class="flex-1" style="flex-grow: 0.33;"></div>
-
-    <!-- Score Buttons -->
-  <div class="grid grid-cols-4 gap-3 mb-2">
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="3">3</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="2">2</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="1">1</button>
-      <button class="btn-score bg-red-600 text-white rounded shadow-lg border-0 border-black" data-score="-">-</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="4">4</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="5">5</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="6">6</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="7">7</button>
-      <button class="btn-score bg-yellow-500 text-white rounded shadow-lg border-0 border-black" data-score="X">X</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="10">10</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="9">9</button>
-      <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="8">8</button>
-    </div>
-
-    <!-- Bottom Actions -->
-    <div class="flex justify-between">
-      <button id="undo" class="bg-red-600 text-white px-4 py-4 rounded uppercase">Undo</button>
-      <button id="previous-series" class="bg-purple-500 text-white px-4 py-4 rounded uppercase">&larr; <span id="previous-series-lang">series</span></button>
-      <button id="previous-range" class="bg-green-600 text-white px-4 py-4 rounded uppercase">&larr; <span id="previous-range-lang">range</span></button>
-      <button id="next-range" class="bg-green-600 text-white px-4 py-4 rounded uppercase"><span id="next-range-lang">range</span> &rarr;</button>
-      <button id="next-series" class="bg-purple-500 text-white px-4 py-4 rounded uppercase"><span id="next-series-lang">series</span> &rarr;</button>
-    </div>
-  </div>
-
-  <!-- Results-page -->
-  <div id="results-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
-    <div class="bg-white dark:bg-gray-800 rounded shadow-lg p-4 max-w-full w-[98vw] max-h-[90vh] overflow-auto">
-      <div class="flex justify-between items-center mb-2">
-        <h2 id="results-title" class="text-lg font-bold capitalize">Results</h2>
-        <button id="close-results" class="text-red-600 font-bold text-xl">&times;</button>
+    <!-- Results-page -->
+    <div id="results-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+      <div class="bg-white dark:bg-gray-800 rounded shadow-lg p-4 max-w-full w-[98vw] max-h-[90vh] overflow-auto">
+        <div class="flex justify-between items-center mb-2">
+          <h2 id="results-title" class="text-lg font-bold capitalize">Results</h2><span id="results-team" class="hidden"></span><span id="results-range" class="hidden"></span><span id="results-total" class="hidden"></span>
+          <button id="close-results" class="text-red-600 font-bold text-xl">&times;</button>
+        </div>
+        <div id="results-table" class="overflow-x-auto"></div>
       </div>
-      <div id="results-table" class="overflow-x-auto"></div>
     </div>
-  </div>
 
-  <script>
-  let maxShots = 5;
-  const translations = {
-    "sv-SE": {
-      "config-teams-lang": "skjutlag",
-      "config-series-lang": "serier",
-      "config-ranges-lang": "banor",
-      "config-shots-lang": "skott",
-      "config-mute-lang": "tysta",
-      "export-csv": "exportera",
-      "results-title": "resultat",
-      "results-team": "skjutlag",
-      "results-range": "bana",
-      "results-total": "summa",
-      "results-btn": "resultat",
-      "clear-scores": "rensa allas poäng",
-      "apply-config": "utför",
-      "shots-display-lang": "träffar",
-      "series-total-lang": "summa serie",
-      "range-total-lang": "summa bana",
-      "undo": "ångra",
-      "previous-series-lang": "serie",
-      "previous-range-lang": "bana",
-      "next-series-lang": "serie",
-      "next-range-lang": "bana",
-      "clear-confirmation": "Ta bort ALLAS sparade poäng?",
-      "changeshots-confirmation": "Ändra max skott och rensa poäng?"
-    },
-    "en-US": {
-      "config-teams": "team",
-      "config-series": "series",
-      "config-ranges": "lanes",
-      "config-shots": "shots",
-      "config-mute-lang": "mute",
-      "export-csv": "export",
-      "results-title": "Results",
-      "results-team": "team",
-      "results-range": "lane",
-      "results-total": "total",
-      "results-btn": "resultat",
-      "clear-scores": "clear everyones scores",
-      "apply-config": "apply",
-      "shots-display-lang": "hits",
-      "series-total-lang": "series score",
-      "range-total-lang": "lane score",
-      "undo": "undo",
-      "previous-series-lang": "series",
-      "previous-range-lang": "lane",
-      "next-series-lang": "series",
-      "next-range-lang": "lane",
-      "clear-confirmation": "Clear ALL saved scores?",
-      "changeshots-confirmation": "Change max shots and clear scores?"
-    }
-  };
-
-    const teamSelect = document.getElementById('team');
-    const seriesSelect = document.getElementById('series');
-    const rangeSelect = document.getElementById('range');
-
-    let language = "sv-SE"; // todo: dynamically change language, "en-US"
-    let shots = [];
-
-    // Keys for localStorage
-    const CONFIG_KEY = 'shootingConfig';
-    const LAST_SELECTION_KEY = 'shootingLastSelection';
-    const SCORES_KEY = 'shootingScores';
-
-    // Default settings
-    const DEFAULT_TEAMS = 3;
-    const DEFAULT_SERIES = 6;
-    const DEFAULT_RANGES = 8;
-    const DEFAULT_SHOTS = 5;
-  
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('✅ Service Worker registered'))
-        .catch(err => console.error('❌ SW registration failed:', err));
-    }
-  
-    // Load config from localStorage or defaults
-    function loadConfig() {
-      const saved = localStorage.getItem(CONFIG_KEY);
-      if (saved) {
-        try {
-          const config = JSON.parse(saved);
-          document.getElementById('team-count').value = config.teamCount || DEFAULT_TEAMS;
-          document.getElementById('series-count').value = config.seriesCount || DEFAULT_SERIES;
-          document.getElementById('range-count').value = config.rangeCount || DEFAULT_RANGES;
-          document.getElementById('shots-count').value = maxShots = config.shotsCount || DEFAULT_SHOTS;
-        } catch {
-          // ignore parse errors
-        }
+    <script>
+    let maxShots = 5;
+    const translations = {
+      "sv-SE": {
+        "config-teams-lang": "skjutlag",
+        "config-series-lang": "serier",
+        "config-ranges-lang": "banor",
+        "config-shots-lang": "skott",
+        "config-mute-lang": "tysta",
+        "export-csv": "exportera",
+        "results-title": "resultat",
+        "results-team": "skjutlag",
+        "results-range": "bana",
+        "results-total": "summa",
+        "results-btn": "resultat",
+        "clear-scores": "rensa allas poäng",
+        "apply-config": "utför",
+        "shots-display-lang": "träffar",
+        "series-total-lang": "summa serie",
+        "range-total-lang": "summa bana",
+        "undo": "ångra",
+        "previous-series-lang": "serie",
+        "previous-range-lang": "bana",
+        "next-series-lang": "serie",
+        "next-range-lang": "bana",
+        "clear-confirmation": "Ta bort ALLAS sparade poäng?",
+        "changeshots-confirmation": "Ändra max skott och rensa poäng?"
+      },
+      "en-US": {
+        "config-teams": "team",
+        "config-series": "series",
+        "config-ranges": "lanes",
+        "config-shots": "shots",
+        "config-mute-lang": "mute",
+        "export-csv": "export",
+        "results-title": "Results",
+        "results-team": "team",
+        "results-range": "lane",
+        "results-total": "total",
+        "results-btn": "resultat",
+        "clear-scores": "clear everyones scores",
+        "apply-config": "apply",
+        "shots-display-lang": "hits",
+        "series-total-lang": "series score",
+        "range-total-lang": "lane score",
+        "undo": "undo",
+        "previous-series-lang": "series",
+        "previous-range-lang": "lane",
+        "next-series-lang": "series",
+        "next-range-lang": "lane",
+        "clear-confirmation": "Clear ALL saved scores?",
+        "changeshots-confirmation": "Change max shots and clear scores?"
       }
-    }
+    };
 
-    // Save config to localStorage
-    function saveConfig(teamCount, seriesCount, rangeCount, shotsCount) {
-      localStorage.setItem(CONFIG_KEY, JSON.stringify({ teamCount, seriesCount, rangeCount, shotsCount }));
-    }
+      const teamSelect = document.getElementById('team');
+      const seriesSelect = document.getElementById('series');
+      const rangeSelect = document.getElementById('range');
 
-    // Populate select options
-    function populateOptions(selectElement, label, count) {
-      selectElement.innerHTML = '';
-      for (let i = 1; i <= count; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = `${label} ${i}`;
-        selectElement.appendChild(option);
-      }
-    }
+      let language = "sv-SE"; // todo: dynamically change language, "en-US"
+      let shots = [];
 
-    // Load last selection from localStorage
-    function loadLastSelection() {
-      const saved = localStorage.getItem(LAST_SELECTION_KEY);
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return null;
-        }
-      }
-      return null;
-    }
+      // Keys for localStorage
+      const CONFIG_KEY = 'shootingConfig';
+      const LAST_SELECTION_KEY = 'shootingLastSelection';
+      const SCORES_KEY = 'shootingScores';
 
-    // Save last selection to localStorage
-    function saveLastSelection(team, series, range) {
-      localStorage.setItem(LAST_SELECTION_KEY, JSON.stringify({ team, series, range }));
-    }
-
-    // Compose key for storing scores per combination
-    function scoreKey(team, series, range) {
-      return `${team}-${series}-${range}`;
-    }
-
-    // Load all scores object from localStorage
-    function loadAllScores() {
-      const saved = localStorage.getItem(SCORES_KEY);
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return {};
-        }
-      }
-      return {};
-    }
-
-    // Save all scores object to localStorage
-    function saveAllScores(allScores) {
-      localStorage.setItem(SCORES_KEY, JSON.stringify(allScores));
-    }
-
-    // Load shots for current selection
-    function loadShots(team, series, range) {
-      const allScores = loadAllScores();
-      const key = scoreKey(team, series, range);
-      return allScores[key] || [];
-    }
-
-    // Save shots for current selection
-    function saveShots(team, series, range, shots) {
-      const allScores = loadAllScores();
-      const key = scoreKey(team, series, range);
-      allScores[key] = shots;
-      saveAllScores(allScores);
-    }
-
-    // Clear all stored scores
-    function clearScores() {
-      const confirmed = confirm(translations[language]["clear-confirmation"]);
-      if (confirmed) {
-        saveAllScores({});
-        saveLastSelection(1, 1, 1);
-        applyConfiguration();
-        console.log("Resetting...");
-      }
-    }
-
-    // Change maxShots
-    function changeMaxShots() {
-      const confirmed = confirm(translations[language]["changeshots-confirmation"]);
-      if (confirmed) {
-        console.log("Changing max shots and resetting...");
-        maxShots = parseInt(document.getElementById('shots-count').value) || 5;
-        saveAllScores({});
-        saveLastSelection(1, 1, 1);
-        applyConfiguration();
-      }
-      loadCurrentShotsAndDisplay();
-    }
-
-    // Capitalize string
-    /* todo, remove if unused - maybe used in language?
-    function capitalize(string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    }*/
+      // Default settings
+      const DEFAULT_TEAMS = 3;
+      const DEFAULT_SERIES = 6;
+      const DEFAULT_RANGES = 8;
+      const DEFAULT_SHOTS = 5;
     
-    // Apply config and repopulate selects
-    function applyConfiguration() {
-      const teamCount = parseInt(document.getElementById('team-count').value) || DEFAULT_TEAMS;
-      const seriesCount = parseInt(document.getElementById('series-count').value) || DEFAULT_SERIES;
-      const rangeCount = parseInt(document.getElementById('range-count').value) || DEFAULT_RANGES;
-      const shotsCount = parseInt(document.getElementById('shots-count').value) || DEFAULTS_SHOTS;
-      console.log("shotsCount: "+shotsCount+", maxShots: "+maxShots);
-      if (shotsCount !== maxShots && shotsCount > 0) {
-        changeMaxShots();
-        return;
-      } else {
-        document.getElementById('shots-count').value = maxShots;
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(() => console.log('✅ Service Worker registered'))
+          .catch(err => console.error('❌ SW registration failed:', err));
       }
-      maxShots = shotsCount;
-
+      
+      // Load config from localStorage or defaults
+      function loadConfig() {
+        const saved = localStorage.getItem(CONFIG_KEY);
+        if (saved) {
+          try {
+            const config = JSON.parse(saved);
+            document.getElementById('team-count').value = config.teamCount || DEFAULT_TEAMS;
+            document.getElementById('series-count').value = config.seriesCount || DEFAULT_SERIES;
+            document.getElementById('range-count').value = config.rangeCount || DEFAULT_RANGES;
+            document.getElementById('shots-count').value = maxShots = config.shotsCount || DEFAULT_SHOTS;
+          } catch {
+            // ignore parse errors
+          }
+        }
+      }
+      
       // Save config to localStorage
-      saveConfig(teamCount, seriesCount, rangeCount, shotsCount);  // todo: dynamic shots
-
-      /* todo: fix this / language
-      populateOptions(teamSelect, capitalize(translations[language][config-teams-lang]), teamCount);
-      populateOptions(seriesSelect, capitalize(translations[language][config-series-lang]), seriesCount);
-      populateOptions(rangeSelect, capitalize(translations[language][config-range-lang]), rangeCount);
-      */
-      // todo: populate dropdowns with language
-      populateOptions(teamSelect, 'Skjutlag', teamCount);
-      populateOptions(seriesSelect, 'Serie', seriesCount);
-      populateOptions(rangeSelect, 'Bana', rangeCount);
-      /* todo: tabort / language
-      populateOptions(teamSelect, 'Team', teamCount);
-      populateOptions(seriesSelect, 'Series', seriesCount);
-      populateOptions(rangeSelect, 'Range', rangeCount);
-      */
-    
-      // After changing options, restore last selection if still valid
-      const lastSel = loadLastSelection();
-      if (lastSel) {
-        if (lastSel.team <= teamCount) teamSelect.value = lastSel.team;
-        if (lastSel.series <= seriesCount) seriesSelect.value = lastSel.series;
-        if (lastSel.range <= rangeCount) rangeSelect.value = lastSel.range;
-      } else {
-        // default selects
-        teamSelect.selectedIndex = 0;
-        seriesSelect.selectedIndex = 0;
-        rangeSelect.selectedIndex = 0;
+      function saveConfig(teamCount, seriesCount, rangeCount, shotsCount) {
+        localStorage.setItem(CONFIG_KEY, JSON.stringify({ teamCount, seriesCount, rangeCount, shotsCount }));
       }
 
-      loadCurrentShotsAndDisplay();
-    document.getElementById('settings-panel').classList.toggle('hidden', true);
-    }
-  
-    // Change language
-    function applyLanguage() {
-      language = (!(language in translations)?"sv-SE":language);  // Set to sv-SE if missing language
-      Object.keys(translations[language]).forEach(function(word) {
-        try {
-        document.getElementById(word).innerHTML = translations[language][word];
+      // Populate select options
+      function populateOptions(selectElement, label, count) {
+        selectElement.innerHTML = '';
+        for (let i = 1; i <= count; i++) {
+          const option = document.createElement('option');
+          option.value = i;
+          option.textContent = `${label} ${i}`;
+          selectElement.appendChild(option);
         }
-        catch(err) {
-        console.log("Error! word("+word+") Error: "+err.message);
-        }
-        //console.log("key:"+word, "trans:"+translations[language][word]); //todo remove this when language is fixed
-      });
-    }
-  
-    // Load current shots from storage and update display
-    function loadCurrentShotsAndDisplay() {
-      const team = parseInt(teamSelect.value);
-      const series = parseInt(seriesSelect.value);
-      const range = parseInt(rangeSelect.value);
+      }
 
-      shots = loadShots(team, series, range);
-      updateDisplay();
-      saveLastSelection(team, series, range);
-    }
-  
-    // Count series total
-    function seriesTotal() {
-      let total = shots.reduce((sum, val) => {
-        if (val === 'X') return sum + 10;
-        const num = parseInt(val);
-        return sum + (isNaN(num) ? 0 : num);
-      }, 0);
-      return total;
-    }
-    
-    // Count pure bulls eyes (X)
-    function bullsEyes() {
-      let x = shots.reduce((sum, val) => {
-        if (val === 'X') return sum + 1;
-      }, 0);
-      return x;
-    }
-  
-    // Update display elements
-    function updateDisplay() {
-      const display = shots.concat(Array(maxShots - shots.length).fill('_')).join(' ');
+      // Load last selection from localStorage
+      function loadLastSelection() {
+        const saved = localStorage.getItem(LAST_SELECTION_KEY);
+        if (saved) {
+          try {
+            return JSON.parse(saved);
+          } catch {
+            return null;
+          }
+        }
+        return null;
+      }
+
+      // Save last selection to localStorage
+      function saveLastSelection(team, series, range) {
+        localStorage.setItem(LAST_SELECTION_KEY, JSON.stringify({ team, series, range }));
+      }
+
+      // Compose key for storing scores per combination
+      function scoreKey(team, series, range) {
+        return `${team}-${series}-${range}`;
+      }
+
+      // Load all scores object from localStorage
+      function loadAllScores() {
+        const saved = localStorage.getItem(SCORES_KEY);
+        if (saved) {
+          try {
+            return JSON.parse(saved);
+          } catch {
+            return {};
+          }
+        }
+        return {};
+      }
+
+      // Save all scores object to localStorage
+      function saveAllScores(allScores) {
+        localStorage.setItem(SCORES_KEY, JSON.stringify(allScores));
+      }
+
+      // Load shots for current selection
+      function loadShots(team, series, range) {
+        const allScores = loadAllScores();
+        const key = scoreKey(team, series, range);
+        return allScores[key] || [];
+      }
+
+      // Save shots for current selection
+      function saveShots(team, series, range, shots) {
+        const allScores = loadAllScores();
+        const key = scoreKey(team, series, range);
+        allScores[key] = shots;
+        saveAllScores(allScores);
+      }
+
+      // Clear all stored scores
+      function clearScores() {
+        const confirmed = confirm(translations[language]["clear-confirmation"]);
+        if (confirmed) {
+          saveAllScores({});
+          saveLastSelection(1, 1, 1);
+          applyConfiguration();
+          console.log("Resetting...");
+        }
+      }
+
+      // Change maxShots
+      function changeMaxShots() {
+        const confirmed = confirm(translations[language]["changeshots-confirmation"]);
+        if (confirmed) {
+          console.log("Changing max shots and resetting...");
+          maxShots = parseInt(document.getElementById('shots-count').value) || 5;
+          saveAllScores({});
+          saveLastSelection(1, 1, 1);
+          applyConfiguration();
+        }
+        loadCurrentShotsAndDisplay();
+      }
+
+      // Capitalize string
+      /* todo, remove if unused - maybe used in language?
+      function capitalize(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      }*/
       
-      let total = seriesTotal();
-
-      document.getElementById('shots-display').textContent = ': ' + display;
-      document.getElementById('series-total').textContent = ': ' + total;
-
-      // Calculate total for all series in current range and team
-      const allScores = loadAllScores();
-      let rangeTotal = 0;
-      const team = parseInt(teamSelect.value);
-      const range = parseInt(rangeSelect.value);
-      for (const key in allScores) {
-        if (key.startsWith(`${team}-`) && key.endsWith(`-${range}`)) {
-          const s = allScores[key];
-          if (Array.isArray(s)) {
-            rangeTotal += s.reduce((sum, val) => {
-              if (val === 'X') return sum + 10;
-              const n = parseInt(val);
-              return sum + (isNaN(n) ? 0 : n);
-            }, 0);
-          }
+      // Apply config and repopulate selects
+      function applyConfiguration() {
+        const teamCount = parseInt(document.getElementById('team-count').value) || DEFAULT_TEAMS;
+        const seriesCount = parseInt(document.getElementById('series-count').value) || DEFAULT_SERIES;
+        const rangeCount = parseInt(document.getElementById('range-count').value) || DEFAULT_RANGES;
+        const shotsCount = parseInt(document.getElementById('shots-count').value) || DEFAULTS_SHOTS;
+        if (shotsCount !== maxShots && shotsCount > 0) {
+          changeMaxShots();
+          return;
+        } else {
+          document.getElementById('shots-count').value = maxShots;
         }
+        maxShots = shotsCount;
+
+        // Save config to localStorage
+        saveConfig(teamCount, seriesCount, rangeCount, shotsCount);  // todo: dynamic shots
+
+        /* todo: fix this / language
+        populateOptions(teamSelect, capitalize(translations[language][config-teams-lang]), teamCount);
+        populateOptions(seriesSelect, capitalize(translations[language][config-series-lang]), seriesCount);
+        populateOptions(rangeSelect, capitalize(translations[language][config-range-lang]), rangeCount);
+        */
+        // todo: populate dropdowns with language
+        populateOptions(teamSelect, 'Skjutlag', teamCount);
+        populateOptions(seriesSelect, 'Serie', seriesCount);
+        populateOptions(rangeSelect, 'Bana', rangeCount);
+        /* todo: tabort / language
+        populateOptions(teamSelect, 'Team', teamCount);
+        populateOptions(seriesSelect, 'Series', seriesCount);
+        populateOptions(rangeSelect, 'Range', rangeCount);
+        */
+        
+        // After changing options, restore last selection if still valid
+        const lastSel = loadLastSelection();
+        if (lastSel) {
+          if (lastSel.team <= teamCount) teamSelect.value = lastSel.team;
+          if (lastSel.series <= seriesCount) seriesSelect.value = lastSel.series;
+          if (lastSel.range <= rangeCount) rangeSelect.value = lastSel.range;
+        } else {
+          // default selects
+          teamSelect.selectedIndex = 0;
+          seriesSelect.selectedIndex = 0;
+          rangeSelect.selectedIndex = 0;
+        }
+
+        loadCurrentShotsAndDisplay();
+      document.getElementById('settings-panel').classList.toggle('hidden', true);
       }
-      document.getElementById('range-total').textContent = ': ' + rangeTotal;
-    
-      // Toggling buttons visibility
-      document.getElementById('previous-series').classList.toggle('hidden', parseInt(rangeSelect.value) > 1 || parseInt(seriesSelect.value) == 1);
-    
-      document.getElementById('previous-range').classList.toggle('hidden', parseInt(rangeSelect.value) == 1);
-    
-      document.getElementById('next-range').classList.toggle('hidden', parseInt(rangeSelect.value) == parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == parseInt(document.getElementById('range-count').value));
-    
-      document.getElementById('next-series').classList.toggle('hidden', parseInt(rangeSelect.value) < parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == document.getElementById('series-count').value);
-    
-    }
-  
-    // Play audio files (hits, series total etc)
-    function playAudio(...filenames) {
-      const audioFolder = "audio/";
-      let index = 0;
-      if (!document.getElementById("muted").checked) {
       
-        function playNext() {
-          if (index < filenames.length) {
-            const audio = new Audio(`${audioFolder}${filenames[index]}.mp3`);
-            index++;
-            audio.addEventListener("ended", playNext);
-            audio.play();
+      // Change language
+      function applyLanguage() {
+        language = (!(language in translations)?"sv-SE":language);  // Set to sv-SE if missing language
+        Object.keys(translations[language]).forEach(function(word) {
+          try {
+          document.getElementById(word).innerHTML = translations[language][word];
           }
-        }
+          catch(err) {
+          console.log("Error! word("+word+") Error: "+err.message);
+          }
+          //console.log("key:"+word, "trans:"+translations[language][word]); //todo remove this when language is fixed
+        });
+      }
+      
+      // Load current shots from storage and update display
+      function loadCurrentShotsAndDisplay() {
+        const team = parseInt(teamSelect.value);
+        const series = parseInt(seriesSelect.value);
+        const range = parseInt(rangeSelect.value);
 
-      playNext();
-      }
-    }
-
-    // Add score
-    function addScore(score) {
-      if (shots.length < maxShots) {
-        shots.push(score);
-    if (shots.length === maxShots) {
-      let total = seriesTotal();
-      if (total == 10*maxShots) {
-        playAudio(score, "serie", "totalt", total, "poäng", (bullsEyes() == maxShots?"airhorn":"nice"));
-      }
-      else {
-        playAudio(score, "serie", "totalt", total, "poäng");
-      }
-    } else {
-      playAudio(score);
-    }
-        saveCurrentShots();
+        shots = loadShots(team, series, range);
         updateDisplay();
+        saveLastSelection(team, series, range);
       }
-    }
-
-    // Undo last score
-    function undoScore() {
-      if (shots.length > 0) {
-        shots.pop();
-        saveCurrentShots();
-        updateDisplay();
-        playAudio("ångra");
+      
+      // Count series total
+      function seriesTotal() {
+        let total = shots.reduce((sum, val) => {
+          if (val === 'X') return sum + 10;
+          const num = parseInt(val);
+          return sum + (isNaN(num) ? 0 : num);
+        }, 0);
+        return total;
       }
-    }
-
-    // Save current shots to localStorage
-    function saveCurrentShots() {
-      const team = parseInt(teamSelect.value);
-      const series = parseInt(seriesSelect.value);
-      const range = parseInt(rangeSelect.value);
-      saveShots(team, series, range, shots);
-      saveLastSelection(team, series, range);
-    }
-  
-    // Move to previous range
-  
-    function previousRange() {
-      const selectedIndex = rangeSelect.selectedIndex;
-      const maxIndex = rangeSelect.options.length - 1;
-      if (selectedIndex > 0) {
-        rangeSelect.selectedIndex--;
-        loadCurrentShotsAndDisplay();
-        playAudio("bana", rangeSelect.selectedIndex+1);
+      
+      // Count pure bulls eyes (X)
+      function bullsEyes() {
+        let x = shots.reduce((sum, val) => {
+          if (val === 'X') return sum + 1;
+        }, 0);
+        return x;
       }
-    }
-  
-    // Move to next range
-    function nextRange() {
-      const selectedIndex = rangeSelect.selectedIndex;
-      const maxIndex = rangeSelect.options.length - 1;
-      if (selectedIndex < maxIndex) {
-        rangeSelect.selectedIndex++;
-        loadCurrentShotsAndDisplay();
-        playAudio("bana", rangeSelect.selectedIndex+1);
-      }
-    }
-  
-    // Move to previous series
-    function previousSeries() {
-      const selectedIndex = seriesSelect.selectedIndex;
-      const maxIndex = seriesSelect.options.length - 1;
-      const maxRange = rangeSelect.options.length - 1;
-      if (selectedIndex > 0) {
-        seriesSelect.selectedIndex--;
-        rangeSelect.selectedIndex = maxRange;
-        loadCurrentShotsAndDisplay();
-        playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
-      } else {
-        console.log("previousSeries() else. selectedIndex <= 0: "+selectedIndex);
-      }
-    }
-  
-    // Move to next series
-    function nextSeries() {
-      const selectedIndex = seriesSelect.selectedIndex;
-      const maxIndex = seriesSelect.options.length - 1;
-      if (selectedIndex < maxIndex) {
-        seriesSelect.selectedIndex++;
-        rangeSelect.selectedIndex = 0;
-        loadCurrentShotsAndDisplay();
-        playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
-      }
-    }
-    
-    // Show results table
-    function showResultsTable() {
-      const allScores = loadAllScores();
-      const config = {
-        teamCount: parseInt(document.getElementById('team-count').value) || DEFAULT_TEAMS,
-        seriesCount: parseInt(document.getElementById('series-count').value) || DEFAULT_SERIES,
-        rangeCount: parseInt(document.getElementById('range-count').value) || DEFAULT_RANGES,
-        shotsCount: parseInt(document.getElementById('shots-count').value) || DEFAULT_SHOTS
-      };
+      
+      // Update display elements
+      function updateDisplay() {
+        const display = shots.concat(Array(maxShots - shots.length).fill('_')).join(' ');
+        
+        let total = seriesTotal();
 
-      let html = '<table class="min-w-full border text-center text-sm">';
-      // Header
-      html += '<thead><tr><th id="results-team" class="border px-1 py-1 capitalize">'+translations[language]["results-team"]+'</th><th id="results-range" class="border px-1 py-1 capitalize">'+translations[language]["results-range"]+'</th>';
-      for (let s = 1; s <= config.seriesCount; s++) {
-        html += `<th class="border px-1 py-1">S${s}</th>`;
-      }
-      html += '<th id="results-total" class="border px-1 py-1 capitalize">'+translations[language]["results-total"]+'</th></tr></thead><tbody>';
+        document.getElementById('shots-display').textContent = ': ' + display;
+        document.getElementById('series-total').textContent = ': ' + total;
 
-      // Rows
-      for (let t = 1; t <= config.teamCount; t++) {
-        for (let r = 1; r <= config.rangeCount; r++) {
-          let hasAnyScore = false;
-          let row = `<tr><td class="border px-1 py-1">${t}</td><td class="border px-1 py-1">${r}</td>`;
-          let grandTotal = 0;
-          for (let s = 1; s <= config.seriesCount; s++) {
-            const key = `${t}-${s}-${r}`;
-            const shots = allScores[key] || [];
-            let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
-            if (shots.length > 0) hasAnyScore = true;
-            grandTotal += total;
-            let tooltip = shots.map((hit, i) => `#${i+1}: ${hit}`).join(', ');
-            row += `<td class="border px-1 py-1 relative group">
-              <span class="cursor-pointer" title="${tooltip}">${total}</span>
-            </td>`;
-          }
-          row += `<td class="border px-1 py-1 font-bold">${grandTotal}</td></tr>`;
-          if (hasAnyScore) html += row;
-        }
-      }
-      html += '</tbody></table>';
-
-      document.getElementById('results-table').innerHTML = html;
-      document.getElementById('results-modal').classList.remove('hidden');
-    }
-
-    document.getElementById('results-btn').addEventListener('click', showResultsTable);
-    document.getElementById('close-results').addEventListener('click', () => {
-      document.getElementById('results-modal').classList.add('hidden');
-    });
-    // Hide results modal when clicking outside the modal content
-    document.getElementById('results-modal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        this.classList.add('hidden');
-      }
-    });
-
-    // Export all scores as CSV
-    function exportScoresAsCSV() {
-      const allScores = loadAllScores();
-      const config = {
-        teamCount: parseInt(document.getElementById('team-count').value) || 1,
-        seriesCount: parseInt(document.getElementById('series-count').value) || 6,
-        rangeCount: parseInt(document.getElementById('range-count').value) || 8,
-        shotsCount: parseInt(document.getElementById('shots-count').value) || 5
-      };
-
-      // Build header
-      let header = ['Team', 'Range'];
-      for (let s = 1; s <= config.seriesCount; s++) header.push(`S${s}`);
-      header.push('Series total', '');
-      for (let s = 1; s <= config.seriesCount; s++) {
-        for (let i = 1; i <= config.shotsCount; i++) header.push(`S${s}-${i}`);
-        header.push(`S${s}-total`);
-      }
-      let csv = header.join(';') + '\n';
-
-      // Build rows
-      for (let t = 1; t <= config.teamCount; t++) {
-        for (let r = 1; r <= config.rangeCount; r++) {
-          let row = [t, r];
-          let seriesTotals = [];
-          let allShots = [];
-          let grandTotal = 0;
-
-          // Series totals
-          for (let s = 1; s <= config.seriesCount; s++) {
-            const key = `${t}-${s}-${r}`;
-            const shots = allScores[key] || [];
-            let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
-            seriesTotals.push(total);
-            grandTotal += total;
-          }
-          row.push(...seriesTotals);
-          row.push(grandTotal, '');
-
-          // Detailed shots and series totals
-          for (let s = 1; s <= config.seriesCount; s++) {
-            const key = `${t}-${s}-${r}`;
-            const shots = allScores[key] || [];
-            for (let i = 0; i < config.shotsCount; i++) {
-              row.push(shots[i] !== undefined ? shots[i] : '');
+        // Calculate total for all series in current range and team
+        const allScores = loadAllScores();
+        let rangeTotal = 0;
+        const team = parseInt(teamSelect.value);
+        const range = parseInt(rangeSelect.value);
+        for (const key in allScores) {
+          if (key.startsWith(`${team}-`) && key.endsWith(`-${range}`)) {
+            const s = allScores[key];
+            if (Array.isArray(s)) {
+              rangeTotal += s.reduce((sum, val) => {
+                if (val === 'X') return sum + 10;
+                const n = parseInt(val);
+                return sum + (isNaN(n) ? 0 : n);
+              }, 0);
             }
-            let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
-            row.push(total);
+          }
+        }
+        document.getElementById('range-total').textContent = ': ' + rangeTotal;
+        
+        // Toggling buttons visibility
+        document.getElementById('previous-series').classList.toggle('hidden', parseInt(rangeSelect.value) > 1 || parseInt(seriesSelect.value) == 1);
+        
+        document.getElementById('previous-range').classList.toggle('hidden', parseInt(rangeSelect.value) == 1);
+        
+        document.getElementById('next-range').classList.toggle('hidden', parseInt(rangeSelect.value) == parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == parseInt(document.getElementById('range-count').value));
+        
+        document.getElementById('next-series').classList.toggle('hidden', parseInt(rangeSelect.value) < parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == document.getElementById('series-count').value);
+        
+      }
+      
+      // Play audio files (hits, series total etc)
+      function playAudio(...filenames) {
+        const audioFolder = "audio/";
+        let index = 0;
+        if (!document.getElementById("muted").checked) {
+          
+          function playNext() {
+            if (index < filenames.length) {
+              const audio = new Audio(`${audioFolder}${filenames[index]}.mp3`);
+              index++;
+              audio.addEventListener("ended", playNext);
+              audio.play();
+            }
           }
 
-          csv += row.join(';') + '\n';
+        playNext();
         }
       }
 
-      // Download CSV
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'shooting-scores.csv';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+      // Add score
+      function addScore(score) {
+        if (shots.length < maxShots) {
+          shots.push(score);
+      if (shots.length === maxShots) {
+        let total = seriesTotal();
+        if (total == 10*maxShots) {
+          playAudio(score, "serie", "totalt", total, "poäng", (bullsEyes() == maxShots?"airhorn":"nice"));
+        }
+        else {
+          playAudio(score, "serie", "totalt", total, "poäng");
+        }
+      } else {
+        playAudio(score);
+      }
+          saveCurrentShots();
+          updateDisplay();
+        }
+      }
 
-    // Event listeners
-    document.getElementById('export-csv').addEventListener('click', exportScoresAsCSV);
-    document.getElementById('apply-config').addEventListener('click', applyConfiguration);
-    document.getElementById('clear-scores').addEventListener('click', clearScores);
-    document.getElementById('toggle-settings').addEventListener('click', () => {
-    document.getElementById('settings-panel').classList.toggle('hidden');
-    });
-    teamSelect.addEventListener('change', loadCurrentShotsAndDisplay);
-    seriesSelect.addEventListener('change', loadCurrentShotsAndDisplay);
-    rangeSelect.addEventListener('change', loadCurrentShotsAndDisplay);
+      // Undo last score
+      function undoScore() {
+        if (shots.length > 0) {
+          shots.pop();
+          saveCurrentShots();
+          updateDisplay();
+          playAudio("ångra");
+        }
+      }
 
-    document.querySelectorAll('.btn-score').forEach(button => {
-      button.addEventListener('click', () => {
-        addScore(button.dataset.score);
+      // Save current shots to localStorage
+      function saveCurrentShots() {
+        const team = parseInt(teamSelect.value);
+        const series = parseInt(seriesSelect.value);
+        const range = parseInt(rangeSelect.value);
+        saveShots(team, series, range, shots);
+        saveLastSelection(team, series, range);
+      }
+      
+      // Move to previous range
+      
+      function previousRange() {
+        const selectedIndex = rangeSelect.selectedIndex;
+        const maxIndex = rangeSelect.options.length - 1;
+        if (selectedIndex > 0) {
+          rangeSelect.selectedIndex--;
+          loadCurrentShotsAndDisplay();
+          playAudio("bana", rangeSelect.selectedIndex+1);
+        }
+      }
+      
+      // Move to next range
+      function nextRange() {
+        const selectedIndex = rangeSelect.selectedIndex;
+        const maxIndex = rangeSelect.options.length - 1;
+        if (selectedIndex < maxIndex) {
+          rangeSelect.selectedIndex++;
+          loadCurrentShotsAndDisplay();
+          playAudio("bana", rangeSelect.selectedIndex+1);
+        }
+      }
+      
+      // Move to previous series
+      function previousSeries() {
+        const selectedIndex = seriesSelect.selectedIndex;
+        const maxIndex = seriesSelect.options.length - 1;
+        const maxRange = rangeSelect.options.length - 1;
+        if (selectedIndex > 0) {
+          seriesSelect.selectedIndex--;
+          rangeSelect.selectedIndex = maxRange;
+          loadCurrentShotsAndDisplay();
+          playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
+        } else {
+          console.log("previousSeries() else. selectedIndex <= 0: "+selectedIndex);
+        }
+      }
+      
+      // Move to next series
+      function nextSeries() {
+        const selectedIndex = seriesSelect.selectedIndex;
+        const maxIndex = seriesSelect.options.length - 1;
+        if (selectedIndex < maxIndex) {
+          seriesSelect.selectedIndex++;
+          rangeSelect.selectedIndex = 0;
+          loadCurrentShotsAndDisplay();
+          playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
+        }
+      }
+      
+      // Show results table
+      function showResultsTable() {
+        const allScores = loadAllScores();
+        const config = {
+          teamCount: parseInt(document.getElementById('team-count').value) || DEFAULT_TEAMS,
+          seriesCount: parseInt(document.getElementById('series-count').value) || DEFAULT_SERIES,
+          rangeCount: parseInt(document.getElementById('range-count').value) || DEFAULT_RANGES,
+          shotsCount: parseInt(document.getElementById('shots-count').value) || DEFAULT_SHOTS
+        };
+
+        let html = '<table class="min-w-full border text-center text-sm">';
+        // Header
+        html += '<thead><tr><th id="results-team" class="border px-1 py-1 capitalize">'+translations[language]["results-team"]+'</th><th id="results-range" class="border px-1 py-1 capitalize">'+translations[language]["results-range"]+'</th>';
+        for (let s = 1; s <= config.seriesCount; s++) {
+          html += `<th class="border px-1 py-1">S${s}</th>`;
+        }
+        html += '<th id="results-total" class="border px-1 py-1 capitalize">'+translations[language]["results-total"]+'</th></tr></thead><tbody>';
+        
+        // Rows
+        for (let t = 1; t <= config.teamCount; t++) {
+          for (let r = 1; r <= config.rangeCount; r++) {
+            let hasAnyScore = false;
+            let row = `<tr><td class="border px-1 py-1">${t}</td><td class="border px-1 py-1">${r}</td>`;
+            let grandTotal = 0;
+            for (let s = 1; s <= config.seriesCount; s++) {
+              const key = `${t}-${s}-${r}`;
+              const shots = allScores[key] || [];
+              let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
+              if (shots.length > 0) hasAnyScore = true;
+              grandTotal += total;
+              let tooltip = shots.map((hit, i) => `#${i+1}: ${hit}`).join(', ');
+              row += `<td class="border px-1 py-1 relative group">
+                <span class="cursor-pointer" title="${tooltip}">${total}</span>
+              </td>`;
+            }
+            row += `<td class="border px-1 py-1 font-bold">${grandTotal}</td></tr>`;
+            if (hasAnyScore) html += row;
+          }
+        }
+        html += '</tbody></table>';
+
+        document.getElementById('results-table').innerHTML = html;
+        document.getElementById('results-modal').classList.remove('hidden');
+      }
+
+      document.getElementById('results-btn').addEventListener('click', showResultsTable);
+      document.getElementById('close-results').addEventListener('click', () => {
+        document.getElementById('results-modal').classList.add('hidden');
       });
-    });
+      // Hide results modal when clicking outside the modal content
+      document.getElementById('results-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.add('hidden');
+        }
+      });
 
-    document.getElementById('undo').addEventListener('click', undoScore);
-    document.getElementById('previous-series').addEventListener('click', previousSeries);
-    document.getElementById('previous-range').addEventListener('click', previousRange);
-    document.getElementById('next-range').addEventListener('click', nextRange);
-    document.getElementById('next-series').addEventListener('click', nextSeries);
+      // Export all scores as CSV
+      function exportScoresAsCSV() {
+        const allScores = loadAllScores();
+        const config = {
+          teamCount: parseInt(document.getElementById('team-count').value) || 1,
+          seriesCount: parseInt(document.getElementById('series-count').value) || 6,
+          rangeCount: parseInt(document.getElementById('range-count').value) || 8,
+          shotsCount: parseInt(document.getElementById('shots-count').value) || 5
+        };
+        
+        // Build header
+        let header = ['Team', 'Range'];
+        for (let s = 1; s <= config.seriesCount; s++) header.push(`S${s}`);
+        header.push('Series total', '');
+        for (let s = 1; s <= config.seriesCount; s++) {
+          for (let i = 1; i <= config.shotsCount; i++) header.push(`S${s}-${i}`);
+          header.push(`S${s}-total`);
+        }
+        let csv = header.join(';') + '\n';
 
-    // Initial load
-    loadConfig();
-    applyConfiguration();
-    applyLanguage(); // todo: fixa dynamiskt byte av språk 
-  </script>
+        // Build rows
+        for (let t = 1; t <= config.teamCount; t++) {
+          for (let r = 1; r <= config.rangeCount; r++) {
+            let row = [t, r];
+            let seriesTotals = [];
+            let allShots = [];
+            let grandTotal = 0;
 
-  <style>
-  .btn-score {
-    padding: 1.5rem;       /* bigger vertical and horizontal padding */
-    font-size: 2.5rem;     /* bigger text */
-    user-select: none;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-  }
-  </style>
-</body>
+            // Series totals
+            for (let s = 1; s <= config.seriesCount; s++) {
+              const key = `${t}-${s}-${r}`;
+              const shots = allScores[key] || [];
+              let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
+              seriesTotals.push(total);
+              grandTotal += total;
+            }
+            row.push(...seriesTotals);
+            row.push(grandTotal, '');
+
+            // Detailed shots and series totals
+            for (let s = 1; s <= config.seriesCount; s++) {
+              const key = `${t}-${s}-${r}`;
+              const shots = allScores[key] || [];
+              for (let i = 0; i < config.shotsCount; i++) {
+                row.push(shots[i] !== undefined ? shots[i] : '');
+              }
+              let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
+              row.push(total);
+            }
+
+            csv += row.join(';') + '\n';
+          }
+        }
+
+        // Download CSV
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'shooting-scores.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // Event listeners
+      document.getElementById('export-csv').addEventListener('click', exportScoresAsCSV);
+      document.getElementById('apply-config').addEventListener('click', applyConfiguration);
+      document.getElementById('clear-scores').addEventListener('click', clearScores);
+      document.getElementById('toggle-settings').addEventListener('click', () => {
+      document.getElementById('settings-panel').classList.toggle('hidden');
+      });
+      teamSelect.addEventListener('change', loadCurrentShotsAndDisplay);
+      seriesSelect.addEventListener('change', loadCurrentShotsAndDisplay);
+      rangeSelect.addEventListener('change', loadCurrentShotsAndDisplay);
+
+      document.querySelectorAll('.btn-score').forEach(button => {
+        button.addEventListener('click', () => {
+          addScore(button.dataset.score);
+        });
+      });
+
+      document.getElementById('undo').addEventListener('click', undoScore);
+      document.getElementById('previous-series').addEventListener('click', previousSeries);
+      document.getElementById('previous-range').addEventListener('click', previousRange);
+      document.getElementById('next-range').addEventListener('click', nextRange);
+      document.getElementById('next-series').addEventListener('click', nextSeries);
+
+      // Initial load
+      loadConfig();
+      applyConfiguration();
+      applyLanguage(); // todo: fixa dynamiskt byte av språk 
+    </script>
+
+    <style>
+    .btn-score {
+      padding: 1.5rem;       /* bigger vertical and horizontal padding */
+      font-size: 2.5rem;     /* bigger text */
+      user-select: none;
+      align-items: center;
+      justify-content: center;
+      display: flex;
+    }
+    </style>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+      window.AddToHomeScreenInstance = window.AddToHomeScreen({
+        appName: 'Shooting Score',                                   // Name of the app.
+                                                              // Required.
+        appNameDisplay: 'standalone',                          // If set to 'standalone' (the default), the app name will be diplayed
+                                                              // on it's own, beneath the "Install App" header. If set to 'inline', the
+                                                              // app name will be displayed on a single line like "Install MyApp"
+                                                              // Optional. Default 'standalone'
+        appIconUrl: 'apple-touch-icon.png',                    // App icon link (square, at least 40 x 40 pixels).
+                                                              // Required.
+        assetUrl: 'https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.2/dist/assets/img/',  // Link to directory of library image assets.
+
+        maxModalDisplayCount: -1,                              // If set, the modal will only show this many times.
+                                                              // [Optional] Default: -1 (no limit).  (Debugging: Use this.clearModalDisplayCount() to reset the count)
+        displayOptions:{ showMobile: true, showDesktop: true }, // show on mobile/desktop [Optional] Default: show everywhere
+        allowClose: true, // allow the user to close the modal by tapping outside of it [Optional. Default: true]
+        showArrow: true, // show the bouncing arrow on the modal [Optional. Default: true] (highly recommend leaving at true as drastically affects install rates)
+      });
+
+      ret = window.AddToHomeScreenInstance.show('en');        // show "add-to-homescreen" instructions to user, or do nothing if already added to homescreen
+                                                              // [optional] language.  If left blank, then language is auto-decided from (1) URL param locale='..' (e.g. /?locale=es) (2) Browser language settings
+      });
+    </script>
+  </body>
 </html>
