@@ -7,6 +7,7 @@ A webapp made to work offline in the phone to help count scores during shooting 
 * Don't ask to clear all scores on first page load (ignore if maxShots == 0)
 * Get offline support for audio files to work (or is it already?)
 ### New features
+* Add to homescreen-functionality (https://github.com/philfung/add-to-homescreen)
 * Make a way to show individual shots from Results-page (clicking on a series?)
 * Import shooter names from CSV?
 * Import weapon class and shooting class so results can be divided into correct classes and sorted on winner
