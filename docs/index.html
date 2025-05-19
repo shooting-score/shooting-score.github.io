@@ -20,37 +20,36 @@
     </div>
 
     <!-- Config Controls -->
-	<div id="settings-panel" class="mb-2 hidden dark:text-gray-400">
-	  <div class="flex flex-wrap gap-2 justify-end">
-		<div class="flex flex-col w-1/5 min-w-[30px]">
-		  <label class="text-sm text-center capitalize" id="config-teams"><span id="config-teams-lang">Teams</span>:</label>
-		  <input type="number" id="team-count" value="3" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
-		</div>
-		<div class="flex flex-col w-1/6 min-w-[30px]">
-		  <label class="text-sm text-center capitalize" id="config-series"><span id="config-series-lang">Series</span>:</label>
-		  <input type="number" id="series-count" value="6" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
-		</div>
-		<div class="flex flex-col w-1/6 min-w-[30px]">
-		  <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
-		  <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
-		</div>
-		<div class="flex flex-col w-1/6 min-w-[40px]">
-		  <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
-		  <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" /><span id="changeshots-confirmation" class="hidden"></span>
-		</div>
-		<div class="flex flex-col w-1/6 min-w-[30px]">
-		  <label class="text-sm text-center capitalize" id="config-mute" for="muted"><span id="config-mute-lang">Mute</span>:</label>
-		  <input type="checkbox" id="muted" class="w-full text-center w-7 h-7 rounded-sm" />
-		</div>
-		<div class="flex">
-		  <button id="clear-scores" class="bg-red-600 text-white px-3 py-2 rounded uppercase">Clear scores</button><span id="clear-confirmation" class="hidden"></span>
-		</div>
-		<div class="flex items-end">
-		  <button id="apply-config" class="bg-blue-600 text-white px-3 py-2 rounded uppercase">Apply</button>
-		</div>
-	  </div>
-	</div>
-
+  <div id="settings-panel" class="mb-2 hidden dark:text-gray-400">
+    <div class="flex flex-wrap gap-2 justify-end">
+    <div class="flex flex-col w-1/5 min-w-[30px]">
+      <label class="text-sm text-center capitalize" id="config-teams"><span id="config-teams-lang">Teams</span>:</label>
+      <input type="number" id="team-count" value="3" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+    </div>
+    <div class="flex flex-col w-1/6 min-w-[30px]">
+      <label class="text-sm text-center capitalize" id="config-series"><span id="config-series-lang">Series</span>:</label>
+      <input type="number" id="series-count" value="6" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+    </div>
+    <div class="flex flex-col w-1/6 min-w-[30px]">
+      <label class="text-sm text-center capitalize" id="config-ranges"><span id="config-ranges-lang">Ranges</span>:</label>
+      <input type="number" id="range-count" value="8" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" />
+    </div>
+    <div class="flex flex-col w-1/6 min-w-[40px]">
+      <label class="text-sm text-center capitalize" id="config-shots"><span id="config-shots-lang">Shots</span>:</label>
+      <input type="number" id="shots-count" value="5" min="1" class="p-1 border rounded w-full text-center dark:bg-gray-400 dark:text-slate-950 dark:border-slate-950" /><span id="changeshots-confirmation" class="hidden"></span>
+    </div>
+    <div class="flex flex-col w-1/6 min-w-[30px]">
+      <label class="text-sm text-center capitalize" id="config-mute" for="muted"><span id="config-mute-lang">Mute</span>:</label>
+      <input type="checkbox" id="muted" class="w-full text-center w-7 h-7 rounded-sm" />
+    </div>
+    <div class="flex">
+      <button id="clear-scores" class="bg-red-600 text-white px-3 py-2 rounded uppercase">Clear scores</button><span id="clear-confirmation" class="hidden"></span>
+    </div>
+    <div class="flex items-end">
+      <button id="apply-config" class="bg-blue-600 text-white px-3 py-2 rounded uppercase">Apply</button>
+    </div>
+    </div>
+  </div>
 
     <!-- Top Controls -->
     <div class="flex justify-between mb-2">
@@ -66,12 +65,12 @@
       <div class="text-xl font-bold uppercase dark:text-gray-850"><span id="series-total-lang">Series Total</span><span id="series-total">: 0</span></div>
       <div class="text-sm font-bold text-gray-600 uppercase dark:text-gray-400"><span id="range-total-lang">Range Total</span><span id="range-total">: 0</span></div>
     </div>
-	
+    
     <!-- Spacer -->
     <div class="flex-1" style="flex-grow: 0.33;"></div>
 
     <!-- Score Buttons -->
-	<div class="grid grid-cols-4 gap-3 mb-2">
+    <div class="grid grid-cols-4 gap-3 mb-2">
       <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="3">3</button>
       <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="2">2</button>
       <button class="btn-score bg-blue-600 text-white rounded shadow-lg border-0 border-black" data-score="1">1</button>
@@ -100,7 +99,7 @@
   <div id="results-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
     <div class="bg-white dark:bg-gray-800 rounded shadow-lg p-4 max-w-full w-[98vw] max-h-[90vh] overflow-auto">
       <div class="flex justify-between items-center mb-2">
-        <h2 class="text-lg font-bold">Results</h2>
+        <h2 id="results-title" class="text-lg font-bold">Results</h2>
         <button id="close-results" class="text-red-600 font-bold text-xl">&times;</button>
       </div>
       <div id="results-table" class="overflow-x-auto"></div>
@@ -108,67 +107,77 @@
   </div>
 
   <script>
-  let maxShots = 10;
-	const translations = {
-		"sv-SE": {
-			"config-teams-lang": "skjutlag",
-			"config-series-lang": "serier",
-			"config-ranges-lang": "banor",
-			"config-shots-lang": "skott",
-			"config-mute-lang": "tysta",
-			"clear-scores": "rensa allas poäng",
-			"apply-config": "utför",
-			"shots-display-lang": "träffar",
-			"series-total-lang": "summa serie",
-			"range-total-lang": "summa bana",
-			"undo": "ångra",
-			"previous-series-lang": "serie",
-			"previous-range-lang": "bana",
-			"next-series-lang": "serie",
-			"next-range-lang": "bana",
-			"clear-confirmation": "Ta bort ALLAS sparade poäng?",
-      "changeshots-confirmation": "Ändra max skott och rensa poäng?"
-		},
-		"en-US": {
-			"config-teams": "team",
-			"config-series": "series",
-			"config-ranges": "lanes",
-			"config-shots": "shots",
-			"config-mute-lang": "mute",
-			"clear-scores": "clear everyones scores",
-			"apply-config": "apply",
-			"shots-display-lang": "hits",
-			"series-total-lang": "series score",
-			"range-total-lang": "lane score",
-			"undo": "undo",
-			"previous-series-lang": "series",
-			"previous-range-lang": "range",
-			"next-series-lang": "series",
-			"next-range-lang": "range",
-			"clear-confirmation": "Clear ALL saved scores?",
-      "changeshots-confirmation": "Change max shots and clear scores?"
-		}
-	};
+  let maxShots = 5;
+  const translations = {
+    "sv-SE": {
+      "results-btn": "Resultat",
+      "config-teams-lang": "skjutlag",
+      "config-series-lang": "serier",
+      "config-ranges-lang": "banor",
+      "config-shots-lang": "skott",
+      "config-mute-lang": "tysta",
+      "clear-scores": "rensa allas poäng",
+      "apply-config": "utför",
+      "shots-display-lang": "träffar",
+      "series-total-lang": "summa serie",
+      "range-total-lang": "summa bana",
+      "undo": "ångra",
+      "previous-series-lang": "serie",
+      "previous-range-lang": "bana",
+      "next-series-lang": "serie",
+      "next-range-lang": "bana",
+      "clear-confirmation": "Ta bort ALLAS sparade poäng?",
+      "changeshots-confirmation": "Ändra max skott och rensa poäng?",
+      "results-title": "Resultat",
+      "results-team": "Skjutlag",
+      "results-range": "Bana",
+      "results-total": "Summa"
+    },
+    "en-US": {
+      "results-btn": "Results",
+      "config-teams": "team",
+      "config-series": "series",
+      "config-ranges": "lanes",
+      "config-shots": "shots",
+      "config-mute-lang": "mute",
+      "clear-scores": "clear everyones scores",
+      "apply-config": "apply",
+      "shots-display-lang": "hits",
+      "series-total-lang": "series score",
+      "range-total-lang": "lane score",
+      "undo": "undo",
+      "previous-series-lang": "series",
+      "previous-range-lang": "range",
+      "next-series-lang": "series",
+      "next-range-lang": "range",
+      "clear-confirmation": "Clear ALL saved scores?",
+      "changeshots-confirmation": "Change max shots and clear scores?",
+      "results-title": "Results",
+      "results-team": "Team",
+      "results-range": "Range",
+      "results-total": "Total"
+    }
+  };
 
     const teamSelect = document.getElementById('team');
     const seriesSelect = document.getElementById('series');
     const rangeSelect = document.getElementById('range');
 
-	  let language = "sv-SE"; // todo: dynamically change language, "en-US"
+    let language = "sv-SE"; // todo: dynamically change language, "en-US"
     let shots = [];
 
     // Keys for localStorage
     const CONFIG_KEY = 'shootingConfig';
     const LAST_SELECTION_KEY = 'shootingLastSelection';
     const SCORES_KEY = 'shootingScores';
-	
-	// Register service worker
-	if ('serviceWorker' in navigator) {
+  
+  // Register service worker
+  if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')
         .then(() => console.log('✅ Service Worker registered'))
         .catch(err => console.error('❌ SW registration failed:', err));
     }
-	
+  
     // Load config from localStorage or defaults
     function loadConfig() {
       const saved = localStorage.getItem(CONFIG_KEY);
@@ -285,15 +294,15 @@
     /* todo, remove if unused - maybe used in language?
     function capitalize(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
-	  }*/
-	  
+    }*/
+    
     // Apply config and repopulate selects
     function applyConfiguration() {
       const teamCount = parseInt(document.getElementById('team-count').value) || 1;
       const seriesCount = parseInt(document.getElementById('series-count').value) || 6;
       const rangeCount = parseInt(document.getElementById('range-count').value) || 8;
       const shotsCount = parseInt(document.getElementById('shots-count').value) || 5;
-      console.log("shotsCount: "+shotsCount+", maxShots: "+maxShots);
+      
       if (shotsCount !== maxShots && shotsCount > 0) {
         changeMaxShots();
         return;
@@ -309,7 +318,7 @@
       populateOptions(teamSelect, capitalize(translations[language][config-teams-lang]), teamCount);
       populateOptions(seriesSelect, capitalize(translations[language][config-series-lang]), seriesCount);
       populateOptions(rangeSelect, capitalize(translations[language][config-range-lang]), rangeCount);
-	    */
+      */
       // todo: populate dropdowns with language
       populateOptions(teamSelect, 'Skjutlag', teamCount);
       populateOptions(seriesSelect, 'Serie', seriesCount);
@@ -319,7 +328,7 @@
       populateOptions(seriesSelect, 'Series', seriesCount);
       populateOptions(rangeSelect, 'Range', rangeCount);
       */
-	  
+    
       // After changing options, restore last selection if still valid
       const lastSel = loadLastSelection();
       if (lastSel) {
@@ -334,12 +343,12 @@
       }
 
       loadCurrentShotsAndDisplay();
-	  document.getElementById('settings-panel').classList.toggle('hidden', true);
+    document.getElementById('settings-panel').classList.toggle('hidden', true);
     }
-	
+  
     // Change language
     function applyLanguage() {
-      language = (!(language in translations)?"sv-SE":language);	// Set to sv-SE if missing language
+      language = (!(language in translations)?"sv-SE":language);  // Set to sv-SE if missing language
       Object.keys(translations[language]).forEach(function(word) {
         try {
         document.getElementById(word).innerHTML = translations[language][word];
@@ -350,7 +359,7 @@
         //console.log("key:"+word, "trans:"+translations[language][word]); //todo remove this when language is fixed
       });
     }
-	
+  
     // Load current shots from storage and update display
     function loadCurrentShotsAndDisplay() {
       const team = parseInt(teamSelect.value);
@@ -361,7 +370,7 @@
       updateDisplay();
       saveLastSelection(team, series, range);
     }
-	
+  
     // Count series total
     function seriesTotal() {
       let total = shots.reduce((sum, val) => {
@@ -379,15 +388,15 @@
       }, 0);
       return x;
     }
-	
+  
     // Update display elements
     function updateDisplay() {
       const display = shots.concat(Array(maxShots - shots.length).fill('_')).join(' ');
-	    
+      
       let total = seriesTotal();
 
-  	  document.getElementById('shots-display').textContent = ': ' + display;
-	    document.getElementById('series-total').textContent = ': ' + total;
+      document.getElementById('shots-display').textContent = ': ' + display;
+      document.getElementById('series-total').textContent = ': ' + total;
 
       // Calculate total for all series in current range and team
       const allScores = loadAllScores();
@@ -406,19 +415,19 @@
           }
         }
       }
-  	  document.getElementById('range-total').textContent = ': ' + rangeTotal;
-	  
+      document.getElementById('range-total').textContent = ': ' + rangeTotal;
+    
       // Toggling buttons visibility
       document.getElementById('previous-series').classList.toggle('hidden', parseInt(rangeSelect.value) > 1 || parseInt(seriesSelect.value) == 1);
-	  
+    
       document.getElementById('previous-range').classList.toggle('hidden', parseInt(rangeSelect.value) == 1);
-	  
+    
       document.getElementById('next-range').classList.toggle('hidden', parseInt(rangeSelect.value) == parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == parseInt(document.getElementById('range-count').value));
-	  
+    
       document.getElementById('next-series').classList.toggle('hidden', parseInt(rangeSelect.value) < parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == document.getElementById('series-count').value);
-	  
+    
     }
-	
+  
     // Play audio files (hits, series total etc)
     function playAudio(...filenames) {
       const audioFolder = "audio/";
@@ -442,17 +451,17 @@
     function addScore(score) {
       if (shots.length < maxShots) {
         shots.push(score);
-		if (shots.length === maxShots) {
-			let total = seriesTotal();
-			if (total == 10*maxShots) {
-				playAudio(score, "serie", "totalt", total, "poäng", (bullsEyes() == maxShots?"airhorn":"nice"));
-			}
-			else {
-				playAudio(score, "serie", "totalt", total, "poäng");
-			}
-		} else {
-			playAudio(score);
-		}
+        if (shots.length === maxShots) {
+          let total = seriesTotal();
+          if (total == 10*maxShots) {
+            playAudio(score, "serie", "totalt", total, "poäng", (bullsEyes() == maxShots?"airhorn":"nice"));
+          }
+          else {
+            playAudio(score, "serie", "totalt", total, "poäng");
+          }
+        } else {
+          playAudio(score);
+        }
         saveCurrentShots();
         updateDisplay();
       }
@@ -464,7 +473,7 @@
         shots.pop();
         saveCurrentShots();
         updateDisplay();
-		    playAudio("ångra");
+        playAudio("ångra");
       }
     }
 
@@ -476,19 +485,19 @@
       saveShots(team, series, range, shots);
       saveLastSelection(team, series, range);
     }
-	
+  
     // Move to previous range
-	
+  
     function previousRange() {
       const selectedIndex = rangeSelect.selectedIndex;
       const maxIndex = rangeSelect.options.length - 1;
       if (selectedIndex > 0) {
         rangeSelect.selectedIndex--;
         loadCurrentShotsAndDisplay();
-		    playAudio("bana", rangeSelect.selectedIndex+1);
+        playAudio("bana", rangeSelect.selectedIndex+1);
       }
     }
-	
+  
     // Move to next range
     function nextRange() {
       const selectedIndex = rangeSelect.selectedIndex;
@@ -496,10 +505,10 @@
       if (selectedIndex < maxIndex) {
         rangeSelect.selectedIndex++;
         loadCurrentShotsAndDisplay();
-		    playAudio("bana", rangeSelect.selectedIndex+1);
+        playAudio("bana", rangeSelect.selectedIndex+1);
       }
     }
-	
+  
     // Move to previous series
     function previousSeries() {
       const selectedIndex = seriesSelect.selectedIndex;
@@ -509,12 +518,12 @@
         seriesSelect.selectedIndex--;
         rangeSelect.selectedIndex = maxRange;
         loadCurrentShotsAndDisplay();
-		    playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
+        playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
       } else {
-	      console.log("previousSeries() else. selectedIndex <= 0: "+selectedIndex);
-	    }
+        console.log("previousSeries() else. selectedIndex <= 0: "+selectedIndex);
+      }
     }
-	
+  
     // Move to next series
     function nextSeries() {
       const selectedIndex = seriesSelect.selectedIndex;
@@ -523,7 +532,7 @@
         seriesSelect.selectedIndex++;
         rangeSelect.selectedIndex = 0;
         loadCurrentShotsAndDisplay();
-		    playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
+        playAudio("serie", seriesSelect.selectedIndex+1, "bana", rangeSelect.selectedIndex+1);
       }
     }
     
@@ -539,11 +548,11 @@
 
       let html = '<table class="min-w-full border text-center text-sm">';
       // Header
-      html += '<thead><tr><th class="border px-1 py-1">Team</th><th class="border px-1 py-1">Range</th>';
+      html += '<thead><tr><th id="results-team" class="border px-1 py-1">'+translations[language]["results-team"]+'</th><th id="results-range" class="border px-1 py-1">'+translations[language]["results-range"]+'</th>';
       for (let s = 1; s <= config.seriesCount; s++) {
         html += `<th class="border px-1 py-1">S${s}</th>`;
       }
-      html += '<th class="border px-1 py-1">Total</th></tr></thead><tbody>';
+      html += '<th id="results-total" class="border px-1 py-1">'+translations[language]["results-total"]+'</th></tr></thead><tbody>';
 
       // Rows
       for (let t = 1; t <= config.teamCount; t++) {
@@ -585,7 +594,7 @@
 
     // Event listeners
     document.getElementById('apply-config').addEventListener('click', applyConfiguration);
-	  document.getElementById('clear-scores').addEventListener('click', clearScores);
+    document.getElementById('clear-scores').addEventListener('click', clearScores);
     document.getElementById('toggle-settings').addEventListener('click', () => {
     document.getElementById('settings-panel').classList.toggle('hidden');
     });
@@ -608,18 +617,18 @@
     // Initial load
     loadConfig();
     applyConfiguration();
-	  applyLanguage(); // todo: fixa dynamiskt byte av språk 
+    applyLanguage(); // todo: fixa dynamiskt byte av språk 
   </script>
 
   <style>
-	.btn-score {
-		padding: 1.5rem;       /* bigger vertical and horizontal padding */
-		font-size: 2.5rem;     /* bigger text */
-		user-select: none;
-		align-items: center;
-		justify-content: center;
-		display: flex;
-	}
+  .btn-score {
+    padding: 1.5rem;       /* bigger vertical and horizontal padding */
+    font-size: 2.5rem;     /* bigger text */
+    user-select: none;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+  }
   </style>
 </body>
 </html>
