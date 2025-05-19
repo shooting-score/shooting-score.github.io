@@ -142,10 +142,10 @@
         "changeshots-confirmation": "Ändra max skott och rensa poäng?"
       },
       "en-US": {
-        "config-teams": "team",
-        "config-series": "series",
-        "config-ranges": "lanes",
-        "config-shots": "shots",
+        "config-teams-lang": "team",
+        "config-series-lang": "series",
+        "config-ranges-lang": "lanes",
+        "config-shots-lang": "shots",
         "config-mute-lang": "mute",
         "export-csv": "export",
         "results-title": "Results",
@@ -306,10 +306,9 @@
       }
 
       // Capitalize string
-      /* todo, remove if unused - maybe used in language?
       function capitalize(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
-      }*/
+      }
       
       // Apply config and repopulate selects
       function applyConfiguration() {
@@ -580,10 +579,10 @@
               let total = shots.reduce((sum, val) => (val === 'X' ? sum + 10 : sum + (parseInt(val) || 0)), 0);
               if (shots.length > 0) hasAnyScore = true;
               grandTotal += total;
-              let tooltip = shots.map((hit, i) => `#${i+1}: ${hit}`).join(', ');
-              row += `<td class="border px-1 py-1 relative group">
-                <span class="cursor-pointer" title="${tooltip}">${total}</span>
-              </td>`;
+              let tooltip = shots.map((hit, i) => `${hit}`).join(' ');
+              row += `<td class="border px-1 py-1 relative group" data-series-cell data-scores="${shots.join(',')}" data-team="${t}" data-range="${r}" data-series="${s}">
+    <span class="cursor-pointer">${total}</span>
+  </td>`;
             }
             row += `<td class="border px-1 py-1 font-bold">${grandTotal}</td></tr>`;
             if (hasAnyScore) html += row;
@@ -591,8 +590,45 @@
         }
         html += '</tbody></table>';
 
+        // Add modal for showing individual scores
+        html += `<div id="series-scores-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+          <div class="bg-white dark:bg-gray-800 rounded shadow-lg p-4 max-w-full w-[90vw] max-h-[60vh] overflow-auto">
+            <div class="flex justify-between items-center mb-2">
+              <h2 class="text-lg font-bold capitalize">Series Scores</h2>
+              <button id="close-series-scores" class="text-red-600 font-bold text-xl">&times;</button>
+            </div>
+            <div id="series-scores-content" class="text-center text-lg"></div>
+          </div>
+        </div>`;
+
         document.getElementById('results-table').innerHTML = html;
         document.getElementById('results-modal').classList.remove('hidden');
+
+        // Add click event listeners to each series cell
+        document.querySelectorAll('#results-table td[data-series-cell]').forEach(cell => {
+          cell.addEventListener('click', function(e) {
+            const scores = this.getAttribute('data-scores');
+            const team = this.getAttribute('data-team');
+            const range = this.getAttribute('data-range');
+            const series = this.getAttribute('data-series');
+            let content = `<div class='mb-2 font-bold capitalize'>${translations[language]["config-teams-lang"]}: ${team}, ${translations[language]["previous-series-lang"]}: ${range}, ${translations[language]["previous-range-lang"]}: ${series}</div>`;
+            if (scores) {
+              const arr = scores.split(',');
+              content += arr.map((score, i) => `<span class='font-mono'>${score}</span>`).join(' &nbsp; ');
+            } else {
+              content += '<em>No scores</em>';
+            }
+            document.getElementById('series-scores-content').innerHTML = content;
+            document.getElementById('series-scores-modal').classList.remove('hidden');
+          });
+        });
+        // Close modal
+        document.getElementById('close-series-scores').onclick = function() {
+          document.getElementById('series-scores-modal').classList.add('hidden');
+        };
+        document.getElementById('series-scores-modal').onclick = function(e) {
+          if (e.target === this) this.classList.add('hidden');
+        };
       }
 
       document.getElementById('results-btn').addEventListener('click', showResultsTable);
