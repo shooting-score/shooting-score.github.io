@@ -11,12 +11,84 @@
     <!-- Add to homescreen -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.2/dist/add-to-homescreen.min.css"/>
     <script src="https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.2/dist/add-to-homescreen.min.js"></script>
+    <script>
+      // Patch adhs-button-cancel to suppress modal for 1 day
+      document.addEventListener('DOMContentLoaded', function () {
+/*         document.body.addEventListener('click', function (e) {
+          if (e.target && e.target.classList.contains('adhs-button-cancel')) {
+          // Set a flag in localStorage with expiry for 1 day
+          const now = Date.now();
+          localStorage.setItem('snooze_AddToHomeScreen', now + 24 * 60 * 60 * 1000);
+          }
+        }); */ // todo: remove this if other works
+        
+        // Before showing AddToHomeScreen, check if cancel flag is set and not expired
+        const adhsCancelUntil = parseInt(localStorage.getItem('snooze_AddToHomeScreen'), 10) || 0;
+        if (Date.now() < adhsCancelUntil) {
+          console.log('AddToHomeScreen suppressed until:', new Date(adhsCancelUntil));
+          // Suppress modal
+          //window.AddToHomeScreenInstance = { show: function(){} };
+          //document.querySelectorAll('.adhs-container').forEach(el => el.classList.add('invisible'));
+          setTimeout(hideAddToHomeScreen, 60);
+          //document.querySelectorAll('.adhs-container').forEach(el => el.style.visibility = 'hidden');
+        } else {
+          // Set a flag in localStorage with expiry for 1 day
+          const now = Date.now();
+          localStorage.setItem('snooze_AddToHomeScreen', now + 24 * 60 * 60 * 1000);
+        }
+      });
+      
+      function hideAddToHomeScreen() {
+        console.log('Hiding AddToHomeScreen modal');
+        // Hide the AddToHomeScreen modal
+        document.querySelectorAll('.adhs-container').forEach(el => el.style.display = 'none');
+      } 
+    </script>
   </head>
   <body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
     <div class="max-w-md mx-auto flex flex-col h-screen p-2">
       <!-- Settings Toggle -->
       <div class="flex justify-between items-center mb-2">
-        <span class="font-bold text-lg">Shooting Score</span>
+        <span class="font-bold text-lg"><span id="app-title">S</span>hooting Score</span>
+        <script>
+          // Debug panel logic
+          (function() {
+            let debugPanel;
+            document.getElementById('app-title').addEventListener('dblclick', function(e) {
+              if (!debugPanel) {
+                debugPanel = document.createElement('div');
+                debugPanel.style.position = 'fixed';
+                debugPanel.style.top = '60px';
+                debugPanel.style.right = '20px';
+                debugPanel.style.zIndex = 9999;
+                debugPanel.style.background = '#222';
+                debugPanel.style.color = '#fff';
+                debugPanel.style.padding = '1em';
+                debugPanel.style.borderRadius = '8px';
+                debugPanel.style.maxWidth = '90vw';
+                debugPanel.style.maxHeight = '60vh';
+                debugPanel.style.overflow = 'auto';
+                debugPanel.style.boxShadow = '0 2px 12px #0008';
+                debugPanel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;"><b>localStorage Debug</b><button id="close-debug-panel" style="margin-left:1em;background:#f44;color:#fff;border:none;border-radius:4px;padding:0.2em 0.7em;cursor:pointer;">&times;</button></div><pre id="debug-ls" style="white-space:pre-wrap;word-break:break-all;margin-top:0.5em;"></pre>';
+                document.body.appendChild(debugPanel);
+                document.getElementById('close-debug-panel').onclick = function() {
+                  debugPanel.remove();
+                  debugPanel = null;
+                };
+              }
+              // Show all localStorage
+              let out = '';
+              for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                let v = localStorage.getItem(k);
+                try { v = JSON.stringify(JSON.parse(v), null, 2); } catch {}
+                out += k + ':\n' + v + '\n\n';
+              }
+              document.getElementById('debug-ls').textContent = out || '(empty)';
+              debugPanel.style.display = 'block';
+            });
+          })();
+        </script>
         <span class="font-normal text-xs">Av <a href="mailto:emil@filidutt.se">Emil Janesten</a></span>
         <button id="toggle-settings" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -195,6 +267,26 @@
           .catch(err => console.error('❌ SW registration failed:', err));
       }
       
+      // todo: fix this so it doesnt show popup every time
+      // Load config from parameters if available, otherwise from localStorage or defaults
+      function loadConfigFromParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const teamCount = parseInt(urlParams.get('teams')) || document.getElementById('team-count').value;
+        const seriesCount = parseInt(urlParams.get('series')) || document.getElementById('series-count').value;
+        const rangeCount = parseInt(urlParams.get('ranges')) || document.getElementById('range-count').value;
+        const shotsCount = parseInt(urlParams.get('shots')) || document.getElementById('shots-count').value;
+        console.log("Loading config from URL parameters:", {
+          teamCount, seriesCount, rangeCount, shotsCount
+        });
+        // Set values in inputs
+        document.getElementById('team-count').value = teamCount;
+        document.getElementById('series-count').value = seriesCount;
+        document.getElementById('range-count').value = rangeCount;
+        document.getElementById('shots-count').value = maxShots = shotsCount;
+
+        //applyConfiguration();
+      }
+
       // Load config from localStorage or defaults
       function loadConfig() {
         const saved = localStorage.getItem(CONFIG_KEY);
@@ -735,6 +827,7 @@
 
       // Initial load
       loadConfig();
+      //loadConfigFromParams(); // todo: fix so this can load without popup every time
       applyConfiguration();
       applyLanguage(); // todo: fixa dynamiskt byte av språk 
     </script>
@@ -752,17 +845,17 @@
     <script>
       document.addEventListener('DOMContentLoaded', function () {
       window.AddToHomeScreenInstance = window.AddToHomeScreen({
-        appName: 'Shooting Score',                                   // Name of the app.
+        appName: 'Shooting Score',                            // Name of the app.
                                                               // Required.
-        appNameDisplay: 'standalone',                          // If set to 'standalone' (the default), the app name will be diplayed
+        appNameDisplay: 'standalone',                         // If set to 'standalone' (the default), the app name will be diplayed
                                                               // on it's own, beneath the "Install App" header. If set to 'inline', the
                                                               // app name will be displayed on a single line like "Install MyApp"
                                                               // Optional. Default 'standalone'
-        appIconUrl: 'apple-touch-icon.png',                    // App icon link (square, at least 40 x 40 pixels).
+        appIconUrl: 'apple-touch-icon.png',                   // App icon link (square, at least 40 x 40 pixels).
                                                               // Required.
         assetUrl: 'https://cdn.jsdelivr.net/gh/philfung/add-to-homescreen@3.2/dist/assets/img/',  // Link to directory of library image assets.
 
-        maxModalDisplayCount: -1,                              // If set, the modal will only show this many times.
+        maxModalDisplayCount: -1,                             // If set, the modal will only show this many times.
                                                               // [Optional] Default: -1 (no limit).  (Debugging: Use this.clearModalDisplayCount() to reset the count)
         displayOptions:{ showMobile: true, showDesktop: true }, // show on mobile/desktop [Optional] Default: show everywhere
         allowClose: true, // allow the user to close the modal by tapping outside of it [Optional. Default: true]
