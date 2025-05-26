@@ -27,10 +27,8 @@
         if (Date.now() < adhsCancelUntil) {
           console.log('AddToHomeScreen suppressed until:', new Date(adhsCancelUntil));
           // Suppress modal
-          //window.AddToHomeScreenInstance = { show: function(){} };
-          //document.querySelectorAll('.adhs-container').forEach(el => el.classList.add('invisible'));
-          setTimeout(hideAddToHomeScreen, 60);
-          //document.querySelectorAll('.adhs-container').forEach(el => el.style.visibility = 'hidden');
+          //window.AddToHomeScreenInstance = { show: function(){} }; // todo: remove this if other works
+          setTimeout(hideAddToHomeScreen, 550); // Hide after 550ms to ensure it doesn't flash
         } else {
           // Set a flag in localStorage with expiry for 1 day
           const now = Date.now();
@@ -111,7 +109,7 @@
             });
           })();
         </script>
-        <span class="font-normal text-xs">Av <a href="mailto:emil@filidutt.se">Emil Janesten</a></span>
+        <span class="font-normal text-xs text-gray-700">Av <a href="mailto:emil@filidutt.se">Emil Janesten</a></span>
         <button id="toggle-settings" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3a.75.75 0 00-1.5 0v1.063a7.518 7.518 0 00-1.69.982L5.53 3.97a.75.75 0 00-1.06 1.06l1.075 1.03a7.518 7.518 0 00-.982 1.69H3a.75.75 0 000 1.5h1.063a7.518 7.518 0 00.982 1.69L3.97 13.47a.75.75 0 101.06 1.06l1.03-1.075a7.518 7.518 0 001.69.982V15a.75.75 0 001.5 0v-1.063a7.518 7.518 0 001.69-.982l1.03 1.075a.75.75 0 101.06-1.06l-1.075-1.03a7.518 7.518 0 00.982-1.69H15a.75.75 0 000-1.5h-1.063a7.518 7.518 0 00-.982-1.69l1.075-1.03a.75.75 0 10-1.06-1.06l-1.03 1.075a7.518 7.518 0 00-1.69-.982V3z" />
