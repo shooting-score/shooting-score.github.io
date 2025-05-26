@@ -529,7 +529,7 @@
         
         document.getElementById('previous-range').classList.toggle('hidden', parseInt(rangeSelect.value) == 1);
         
-        document.getElementById('next-range').classList.toggle('hidden', parseInt(rangeSelect.value) == parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == parseInt(document.getElementById('range-count').value));
+        document.getElementById('next-range').classList.toggle('hidden', parseInt(rangeSelect.value) == parseInt(document.getElementById('range-count').value) || parseInt(rangeSelect.value) == parseInt(document.getElementById('range-count').value));
         
         document.getElementById('next-series').classList.toggle('hidden', parseInt(rangeSelect.value) < parseInt(document.getElementById('range-count').value) || parseInt(seriesSelect.value) == document.getElementById('series-count').value);
         
