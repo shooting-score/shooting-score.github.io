@@ -69,7 +69,29 @@
                 debugPanel.style.maxHeight = '60vh';
                 debugPanel.style.overflow = 'auto';
                 debugPanel.style.boxShadow = '0 2px 12px #0008';
-                debugPanel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;"><b>localStorage Debug</b><button id="close-debug-panel" style="margin-left:1em;background:#f44;color:#fff;border:none;border-radius:4px;padding:0.2em 0.7em;cursor:pointer;">&times;</button></div><pre id="debug-ls" style="white-space:pre-wrap;word-break:break-all;margin-top:0.5em;"></pre>';
+                debugPanel.innerHTML = `
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:0.5em;">
+                      <b>localStorage Debug</b>
+                      <a id="mail-debug" href="#" style="background:#2563eb;color:#fff;border:none;border-radius:4px;padding:0.2em 0.7em;text-decoration:none;font-size:0.95em;">Mail Debug</a>
+                    </div>
+                    <button id="close-debug-panel" style="margin-left:1em;background:#f44;color:#fff;border:none;border-radius:4px;padding:0.2em 0.7em;cursor:pointer;">&times;</button>
+                  </div>
+                  <pre id="debug-ls" style="white-space:pre-wrap;word-break:break-all;margin-top:0.5em;"></pre>
+                `;
+                // Add mailto handler
+                setTimeout(() => {
+                  const mailBtn = document.getElementById('mail-debug');
+                  if (mailBtn) {
+                    mailBtn.onclick = function(e) {
+                      e.preventDefault();
+                      const ls = document.getElementById('debug-ls').textContent;
+                      const subject = encodeURIComponent('Shooting Score Debug');
+                      const body = encodeURIComponent(ls);
+                      window.location.href = `mailto:emil@filidutt.se?subject=${subject}&body=${body}`;
+                    };
+                  }
+                }, 0);
                 document.body.appendChild(debugPanel);
                 document.getElementById('close-debug-panel').onclick = function() {
                   debugPanel.remove();
