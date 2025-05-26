@@ -1,6 +1,6 @@
 {
   "name": "Shooting Score",
-  "short_name": "Score",
+  "short_name": "Shot Score",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#f3f4f6",
