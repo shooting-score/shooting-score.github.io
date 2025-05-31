@@ -9,7 +9,7 @@ self.addEventListener('install', (event) => {
         '/',
         '/index.html', // Adjust based on your entry point
 		    '/audio/-.mp3',
-		    '/audio/asd.mp3',
+//		    '/audio/asd.mp3',
 		    '/audio/airhown.mp3',
 //		  '/audio/andra.mp3',
 //		  '/audio/avbryt.mp3',
