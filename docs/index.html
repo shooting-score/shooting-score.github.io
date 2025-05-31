@@ -725,7 +725,7 @@
             const team = this.getAttribute('data-team');
             const range = this.getAttribute('data-range');
             const series = this.getAttribute('data-series');
-            let content = `<div class='mb-2 font-bold capitalize'>${translations[language]["config-teams-lang"]}: ${team}, ${translations[language]["previous-series-lang"]}: ${range}, ${translations[language]["previous-range-lang"]}: ${series}</div>`;
+            let content = `<div class='mb-2 font-bold capitalize'>${translations[language]["config-teams-lang"]}: ${team}, ${translations[language]["previous-series-lang"]}: ${series}, ${translations[language]["previous-range-lang"]}: ${range}</div>`;
             if (scores) {
               const arr = scores.split(',');
               content += arr.map((score, i) => `<span class='font-mono'>${score}</span>`).join(' &nbsp; ');
