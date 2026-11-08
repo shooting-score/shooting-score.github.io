@@ -506,7 +506,9 @@
       '</div>' +
       '<div class="panel" id="ringsPanel" hidden><p class="small">Drag the picture to move the rings so the dashed yellow circle sits on the edge of the black aiming mark. Use the buttons to resize.</p>' +
       '<div class="row"><span class="lbl">Size</span><button class="btn small" data-r="s-">&minus;</button><button class="btn small" data-r="s+">+</button><span class="lbl">Height</span><button class="btn small" data-r="h-">&minus;</button><button class="btn small" data-r="h+">+</button><span class="lbl">Width</span><button class="btn small" data-r="w-">&minus;</button><button class="btn small" data-r="w+">+</button></div></div>' +
-      (t.hasImage ? '<details class="panel" id="detectPanel"><summary>Scan again</summary><div class="row"><label>Holes look <select id="holesSel"><option value="light">lighter than the paper</option><option value="dark">darker than the paper</option></select></label>' +
+      (t.hasImage ? '<details class="panel" id="detectPanel"><summary>Scan again</summary><div class="row"><label class="holes-lbl">Holes look <select id="holesSel"><option value="light">lighter than the paper</option><option value="dark">darker than the paper</option>' +
+        '<option value="mixed">dark on light rings, light on black</option>' +
+        '<optgroup label="A colour"><option value="green">green</option><option value="yellow">yellow</option><option value="black">black</option><option value="red">red</option><option value="blue">blue</option></optgroup></select></label>' +
         '<label>Sensitivity <input type="range" id="sensRange" min="0" max="1" step="0.05"></label><button class="btn small primary" id="redetect">Find holes again</button></div></details>' : '') +
       '</div>' +
       '<aside class="ed-right card"><p class="info" id="info"></p><div class="ed-score" id="edScore"></div><div id="edStats"></div><table class="tbl shots"><thead><tr><th>#</th><th>Score</th><th>Position</th></tr></thead><tbody id="shotRows"></tbody></table>' +

@@ -3,7 +3,7 @@
 (function (HM) {
   'use strict';
 
-  /* Returns { canvas, truth: [{x, y}] (mm) }. opts: { shots, seed, W, H, rotate } */
+  /* Returns { canvas, truth: [{x, y}] (mm) }. opts: { shots, seed, W, H, rotate, backing: [colour, colour] } */
   HM.makeSample = function (d, opts) {
     opts = opts || {};
     var rnd = HM.rng(opts.seed || 12345);
@@ -15,7 +15,8 @@
 
     // light-blue backing sheet with soft lighting
     var g = ctx.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, '#eef4fb'); g.addColorStop(1, '#d6e3f0');
+    var bk = opts.backing || ['#eef4fb', '#d6e3f0'];
+    g.addColorStop(0, bk[0]); g.addColorStop(1, bk[1]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
     // the card, drawn separately so holes can be cut through it

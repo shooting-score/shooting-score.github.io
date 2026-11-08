@@ -186,6 +186,8 @@ h2 { font-size: 20px; } h3 { font-size: 16px; }
 .panel summary { cursor: pointer; font-weight: 600; }
 .panel .row { margin-top: 8px; }
 .panel label { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
+.panel label.holes-lbl { flex: 1 1 100%; }
+#holesSel { flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: 5px 6px; border: 1px solid var(--field-line); border-radius: 8px; color: var(--text); background: var(--field); }
 .lbl { font-size: 13px; color: var(--muted); margin-left: 6px; }
 .info { margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; background: var(--info-bg); color: var(--info-text); font-size: 14px; }
 .info:empty { display: none; }
