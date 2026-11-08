@@ -220,6 +220,24 @@
   /* imageData: ImageData-like {width, height, data}. d: discipline.
      opts: { expected: shots per target, sensitivity: 0..1, holes: 'light'|'dark' }
      Returns { found, calib, shots: [{u, v, conf}], candidates, message } in the image's pixels. */
+  // Hole colours that can be picked in "Scan again": hue centre and half-width in degrees.
+  var HOLE_HUES = { red: [0, 28], yellow: [55, 20], green: [125, 50], blue: [215, 40] };
+
+  // Hue (0-360) and saturation (0-1) of an RGB pixel.
+  function hueSat(r, g, b) {
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), c = mx - mn, h = 0;
+    if (c > 0) {
+      if (mx === r) h = ((g - b) / c + 6) % 6; else if (mx === g) h = (b - r) / c + 2; else h = (r - g) / c + 4;
+      h *= 60;
+    }
+    return [h, mx ? c / mx : 0];
+  }
+
+  /* opts.holes says what the holes look like:
+     'light'  – lighter than the paper (and lighter than the black) – the default
+     'dark' / 'black' – darker than the paper (not visible inside the black)
+     'mixed'  – darker than the paper on the light rings, lighter than the black on the dark rings
+     'red' | 'yellow' | 'green' | 'blue' – that colour, both on the paper and on the black */
   HM.analyse = function (imageData, d, opts) {
     opts = opts || {};
     var sens = opts.sensitivity == null ? 0.5 : opts.sensitivity;
@@ -254,6 +272,8 @@
     }
     var blackMed = median(blackVals), paperMed = median(paperG.length ? paperG : [200]);
     var thrBlack = blackMed + (paperMed - blackMed) * (0.62 - 0.4 * (sens - 0.5));
+    // In 'mixed' the holes show a darker backing, so on the black they are only a little lighter.
+    var thrMixed = blackMed + (paperMed - blackMed) * (0.22 - 0.16 * (sens - 0.5));
 
     // Local paper brightness (ignores print and the aiming mark).
     var pm = new Uint8Array(N), pg = new Float32Array(N), pb = new Float32Array(N);
@@ -262,22 +282,51 @@
     }
     var rh = d.cal / 2 * (calib.sx + calib.sy) / 2;
     var win = Math.max(6, Math.round(rh * 3));
+    // Card = paper or the aiming mark. Spots with little card around them are the backing showing past the card's edge.
+    var card = new Uint8Array(N);
+    for (i = 0; i < N; i++) card[i] = pm[i] || zone[i] < d.blackR + 0.3 ? 1 : 0;
+    var Icard = integral(card, W, H);
     var Ic = integral(pm, W, H), Ig = integral(pg, W, H), Ib = integral(pb, W, H);
-    var tPaper = 38 - 40 * sens, dark = opts.holes === 'dark';
+    var tPaper = 38 - 40 * sens, mode = opts.holes || 'light';
+    var dark = mode === 'dark' || mode === 'black';
+    var lightOnBlack = mode === 'light' || mode === 'mixed', darkOnPaper = dark || mode === 'mixed';
+    var hue = HOLE_HUES[mode], hh = null, ss = null, Is = null, blackSat = 0, tSat = 0.22 - 0.2 * (sens - 0.5);
+    if (hue) {
+      // Saturation of each pixel, and of the local paper, so a coloured hole stands out from the buff card.
+      hh = new Float32Array(N); ss = new Float32Array(N);
+      var psat = new Float32Array(N), bs = [];
+      for (i = 0; i < N; i++) {
+        var hs = hueSat(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]);
+        hh[i] = hs[0]; ss[i] = hs[1];
+        if (pm[i]) psat[i] = hs[1];
+        if (zone[i] < d.blackR * 0.85 && i % stride === 0) bs.push(hs[1]);
+      }
+      Is = integral(psat, W, H); blackSat = median(bs.length ? bs : [0]);
+    }
+    var isHue = function (i) {
+      var dh = Math.abs(hh[i] - hue[0]); if (dh > 180) dh = 360 - dh;
+      return dh <= hue[1] && gray[i] > 25;
+    };
     var mask = new Uint8Array(N);
     for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
       i = y * W + x;
       var zz = zone[i];
       if (zz > rMax) continue;
       if (zz < d.blackR - d.cal * 0.15) {
-        if (!dark && gray[i] > thrBlack) mask[i] = 1;
+        if (hue) { if (isHue(i) && ss[i] - blackSat > tSat) mask[i] = 1; }
+        else if (lightOnBlack && gray[i] > (mode === 'mixed' ? thrMixed : thrBlack)) mask[i] = 1;
         continue;
       }
       var cnt = boxSum(Ic, W, H, x - win, y - win, x + win, y + win);
       if (cnt < 4) continue;
+      var area = (Math.min(W - 1, x + win) - Math.max(0, x - win) + 1) * (Math.min(H - 1, y + win) - Math.max(0, y - win) + 1);
+      if (boxSum(Icard, W, H, x - win, y - win, x + win, y + win) < area * 0.7) continue;
       var lg = boxSum(Ig, W, H, x - win, y - win, x + win, y + win) / cnt;
       var lb = boxSum(Ib, W, H, x - win, y - win, x + win, y + win) / cnt;
-      if (!dark) {
+      if (hue) {
+        var ls = boxSum(Is, W, H, x - win, y - win, x + win, y + win) / cnt;
+        if (isHue(i) && ss[i] - ls > tSat) mask[i] = 1;
+      } else if (!darkOnPaper) {
         if ((gray[i] - lg) + (br[i] - lb) > tPaper) mask[i] = 1;
       } else if (Math.abs(zz - d.blackR) > 0.6 && lg - gray[i] > 30 + tPaper) mask[i] = 1;
     }
@@ -306,8 +355,23 @@
     blobs.forEach(function (b) {
       var c = b.c, n = b.n;
       var fit = Math.min(1, c.area / (Ah * n)) * Math.min(1, (Ah * n) / c.area);
+      if (n === 1) {
+        // Holes are round and filled; printed digits and ring fragments are not.
+        var bw1 = c.maxx - c.minx + 1, bh1 = c.maxy - c.miny + 1;
+        fit *= Math.min(bw1, bh1) / Math.max(bw1, bh1) * Math.min(1, c.area / (bw1 * bh1) / 0.72);
+      }
       if (n === 1) found.push({ u: c.sx / c.area, v: c.sy / c.area, conf: fit });
       else splitBlob(c.pix, W, n).forEach(function (p) { found.push({ u: p[0], v: p[1], conf: fit * 0.9 }); });
+    });
+    // Printed ring numbers sit on the axes in the middle of rings 1-8 and can look like holes:
+    // rank spots there last, so they are only kept when nothing better was found.
+    var numR = Math.min(d.step * 0.42, 9) * 0.6;
+    found.forEach(function (f) {
+      var m = HM.toMM({ cx: calib.cx, cy: calib.cy, sx: calib.sx, sy: calib.sy }, f);
+      for (var k = 1; k <= d.numbers; k++) {
+        var rm = (HM.ringR(d, k) + HM.ringR(d, k + 1)) / 2;
+        if (Math.min(Math.hypot(Math.abs(m.x) - rm, m.y), Math.hypot(m.x, Math.abs(m.y) - rm)) < numR) { f.conf *= 0.3; break; }
+      }
     });
     found.sort(function (a, b) { return b.conf - a.conf; });
     var expected = opts.expected || 0, candidates = found.length;
