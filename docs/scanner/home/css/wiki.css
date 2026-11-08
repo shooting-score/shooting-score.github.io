@@ -1,0 +1,23 @@
+/* HitMark help pages: plain document style measured from the reference wiki. */
+:root {
+  --w-font: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir, "Segoe UI", "Lucida Grande", "Helvetica Neue", Helvetica, "Fira Sans", Roboto, Noto, "Droid Sans", Cantarell, Oxygen, Ubuntu, "Franklin Gothic Medium", "Century Gothic", "Liberation Sans", sans-serif;
+  --w-bg: #fffcf2;
+  --w-text: #333333;
+  --w-head: #000000;
+  --w-link: #000000b3;
+  --w-rule: #aaaaaa;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 8px; background: var(--w-bg); color: var(--w-text); font: 400 16px/normal var(--w-font); overflow-x: hidden; }
+.wiki { padding: 9px 16px; }
+h1, h2, h3 { color: var(--w-head); font-weight: 400; margin: 0; }
+h1 { font-size: 32px; line-height: 36.56px; padding: 0.5em 0 0.17em; border-bottom: 1px solid var(--w-rule); }
+h2 { font-size: 24px; line-height: normal; padding: 0.5em 0 0.17em; border-bottom: 1px solid var(--w-rule); }
+h3 { font-size: 18.72px; line-height: 21.5px; padding: 0.5em 0 0.17em; border-bottom: 1px solid transparent; }
+p, ul { margin: 16px 0; }
+ul { padding-left: 40px; }
+a { color: var(--w-link); text-decoration: underline; }
+a:hover { color: #000; }
+strong { font-weight: 700; }
+@media (min-width: 480px) { .wiki.pad-end { padding-bottom: 28px; } }
