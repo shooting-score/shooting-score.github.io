@@ -55,7 +55,7 @@
       var ti = sess.targets.indexOf(t);
       HM.targetShotsMM(t).forEach(function (p) { pts.push(p); colors.push(opts.colorByTarget ? PALETTE[ti % PALETTE.length] : null); });
     });
-    var radius = HM.outerR(d) + d.cal;
+    var radius = HM.viewR(d);
     var st = HM.stats(d, pts), cx = 0, cy = 0;
     if (opts.zoom && pts.length) {
       var ext = 0;
@@ -203,7 +203,7 @@
   }
 
   function addManualTarget(sess) {
-    var d = HM.sessDisc(sess), ppm = 600 / (2 * (HM.outerR(d) + Math.max(6, d.step * 0.6)));
+    var d = HM.sessDisc(sess), ppm = 600 / (2 * HM.cardHalf(d));
     var size = 600;
     var t = { id: HM.uid(), created: Date.now(), imgW: size, imgH: size, hasImage: false, calib: { cx: size / 2, cy: size / 2, sx: ppm, sy: ppm }, shots: [], info: 'Tap “Add shot”, then tap the target where each shot landed.', found: true };
     sess.targets.push(t);
@@ -406,7 +406,7 @@
           '<option value="caliber">' + esc(shooterLine(Object.assign({}, sess, { gun: sess.gun || 'no gun given' }))) + '</option>' +
         '</select></label></div>' +
         '<div class="side"><h3>Where your hits land</h3><p id="heatCap" class="muted"></p><div id="heatStats"></div>' +
-        '<p class="small muted">Red and yellow show where most shots landed; dark blue means no hits. Day ranges include every session with this target type; use the list below them to keep only one shooter, gun or caliber.</p></div></section>';
+        '<p class="small muted">Red and yellow show where most shots landed; dark blue means no hits. Day ranges include every session with this target type (and its training card); use the list below them to keep only one shooter, gun or caliber.</p></div></section>';
     }
     html += '<div class="row footer-row"><button class="btn small danger" id="delSess">Delete session</button></div>';
     main.innerHTML = html;
@@ -416,7 +416,7 @@
         sess.name = v.name; sess.date = v.date; sess.shots = v.shots; sess.notes = v.notes;
         sess.shooter = v.shooter; sess.gun = v.gun; sess.caliber = v.caliber;
         if (v.discipline !== sess.discipline) {
-          if (sess.targets.length && !confirm('Change the target type? Shots keep their place on the pictures but rings are measured again.')) { save(sess).then(route); return; }
+          if (sess.targets.length && !HM.sameRings(HM.disc(sess.discipline), HM.disc(v.discipline)) && !confirm('Change the target type? Shots keep their place on the pictures but rings are measured again.')) { save(sess).then(route); return; }
           var od = HM.sessDisc(sess), nd = HM.disc(v.discipline);
           sess.targets.forEach(function (t) { if (!t.hasImage) return; var k = od.blackR / nd.blackR; t.calib.sx *= k; t.calib.sy *= k; });
           sess.discipline = v.discipline;
@@ -460,7 +460,7 @@
         if (days !== 0) {
           var lim = days > 0 ? new Date(Date.now() - days * 86400000) : null;
           sessions = S.sessions.filter(function (s) {
-            if (s.discipline !== sess.discipline || !sameWho(s)) return false;
+            if (!HM.sameRings(HM.disc(s.discipline), HM.disc(sess.discipline)) || !sameWho(s)) return false;
             if (!lim) return true;
             var p = (s.date || '').split('-'); return new Date(+p[0], +p[1] - 1, +p[2]) >= new Date(lim.getFullYear(), lim.getMonth(), lim.getDate());
           });
@@ -469,7 +469,7 @@
         var w = hc.clientWidth, h = hc.clientHeight, ctx = HM.prepCanvas(hc, w, h);
         var hst = HM.stats(d, pts), ext = d.blackR * 0.8;
         pts.forEach(function (p) { ext = Math.max(ext, Math.abs(p.x) + d.cal * 2, Math.abs(p.y) + d.cal * 2); });
-        ext = Math.min(ext, HM.outerR(d) + d.cal);
+        ext = Math.min(ext, HM.viewR(d));
         HM.drawHeatmap(ctx, d, HM.fitMap(w, h, ext), pts, w, h);
         $('#heatCap').textContent = 'Distribution of ' + pts.length + ' shot' + (pts.length === 1 ? '' : 's') + (days === 0 ? ' in this session.' : (days > 0 ? ' from the last ' + days + ' days' : ' from all sessions') + (who === 'all' ? '' : ' by ' + $('#whoSel').selectedOptions[0].textContent) + ' (' + sessions.length + ' session' + (sessions.length === 1 ? '' : 's') + ').');
         $('#heatStats').innerHTML = statsGrid(d, hst);
@@ -526,7 +526,7 @@
       ctx = HM.prepCanvas(cv, cw, ch);
     }
     function fitTarget() {
-      var R = HM.outerR(d) + d.cal * 2, c = t.calib;
+      var R = HM.viewR(d) + d.cal, c = t.calib;
       var wpx = 2 * R * c.sx, hpx = 2 * R * c.sy;
       if (!t.hasImage) { wpx = t.imgW; hpx = t.imgH; }
       E.scale = Math.min(cw / wpx, ch / hpx) * 0.98;
@@ -736,8 +736,9 @@
 
     $('#info').textContent = t.info || '';
     $('#info').className = 'info' + (t.found === false ? ' warn' : '');
+    size(); fitTarget();
     if (!t.hasImage) { E.view = 'plot'; if (!t.shots.length) setMode('add'); }
-    size(); fitTarget(); render(); panel();
+    render(); panel();
     if (t.hasImage) {
       HM.store.getImage(t.id).then(function (b) {
         if (!b) { E.view = 'plot'; render(); toast('The photo for this target is missing; showing the plot.'); return; }

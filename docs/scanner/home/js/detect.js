@@ -283,8 +283,19 @@
     var rh = d.cal / 2 * (calib.sx + calib.sy) / 2;
     var win = Math.max(6, Math.round(rh * 3));
     // Card = paper or the aiming mark. Spots with little card around them are the backing showing past the card's edge.
+    // The card's paper is tinted (buff); a white, grey or blue backing is not. When the paper has a clear tint,
+    // only pixels with about that tint count as card.
+    var rgS = [], gbS = [];
+    for (i = 0; i < N; i += stride) {
+      if (pm[i] && zone[i] < Math.min(HM.ringR(d, 3), HM.cardHalf(d) - d.step)) { rgS.push(px[i * 4] - px[i * 4 + 1]); gbS.push(px[i * 4 + 1] - px[i * 4 + 2]); }
+    }
+    var pRG = median(rgS.length ? rgS : [0]), pGB = median(gbS.length ? gbS : [0]), pChroma = Math.hypot(pRG, pGB);
     var card = new Uint8Array(N);
-    for (i = 0; i < N; i++) card[i] = pm[i] || zone[i] < d.blackR + 0.3 ? 1 : 0;
+    for (i = 0; i < N; i++) {
+      if (zone[i] < d.blackR + 0.3) { card[i] = 1; continue; }
+      if (!pm[i]) continue;
+      card[i] = pChroma < 20 || Math.hypot(px[i * 4] - px[i * 4 + 1] - pRG, px[i * 4 + 1] - px[i * 4 + 2] - pGB) < pChroma * 0.5 ? 1 : 0;
+    }
     var Icard = integral(card, W, H);
     var Ic = integral(pm, W, H), Ig = integral(pg, W, H), Ib = integral(pb, W, H);
     var tPaper = 38 - 40 * sens, mode = opts.holes || 'light';
@@ -348,7 +359,7 @@
     while (expected0 && total < expected0 && blobs.length) {
       var bb = null, br2 = 0;
       blobs.forEach(function (b) { var q = b.c.area / ((b.n + 1) * Ah); if (q > br2) { br2 = q; bb = b; } });
-      if (!bb || br2 < 0.3) break;
+      if (!bb || br2 < 0.6) break; // only blobs big enough to hold one more hole (overlapping holes cover less than their sum)
       bb.n++; total++;
     }
     var found = [];
@@ -368,7 +379,9 @@
     var numR = Math.min(d.step * 0.42, 9) * 0.6;
     found.forEach(function (f) {
       var m = HM.toMM({ cx: calib.cx, cy: calib.cy, sx: calib.sx, sy: calib.sy }, f);
-      for (var k = 1; k <= d.numbers; k++) {
+      // On a small card, spots outside ring 2 are mostly the printed logos and text in the corners.
+      if (d.card && Math.hypot(m.x, m.y) > HM.ringR(d, 2) + d.cal / 2) { f.conf *= 0.3; return; }
+      for (var k = d.numFrom || 1; k <= d.numbers; k++) {
         var rm = (HM.ringR(d, k) + HM.ringR(d, k + 1)) / 2;
         if (Math.min(Math.hypot(Math.abs(m.x) - rm, m.y), Math.hypot(m.x, Math.abs(m.y) - rm)) < numR) { f.conf *= 0.3; break; }
       }

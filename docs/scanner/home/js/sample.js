@@ -3,12 +3,31 @@
 (function (HM) {
   'use strict';
 
+  // The corner print of a training card: an approval logo, a federation mark and the printer's address.
+  function drawCardPrint(c, M, ppm, half) {
+    var mm = function (x, y) { return [M.cx + x * ppm, M.cy - y * ppm]; };
+    c.save();
+    var p = mm(-half + 13, -half + 16);
+    c.fillStyle = '#222'; c.strokeStyle = '#222';
+    c.lineWidth = 1.6 * ppm; c.beginPath(); c.arc(p[0], p[1], 7 * ppm, 0, 7); c.stroke();
+    c.beginPath(); c.arc(p[0], p[1], 3 * ppm, 0, 7); c.fill();
+    c.font = (2.6 * ppm) + 'px Arial'; c.textAlign = 'center';
+    c.fillText('ISSF', p[0], p[1] + 11 * ppm); c.fillText('training only', p[0], p[1] + 15 * ppm);
+    p = mm(half - 14, -half + 22);
+    c.lineWidth = 1.2 * ppm; c.beginPath(); c.arc(p[0], p[1], 6 * ppm, 0, 7); c.stroke();
+    c.fillRect(p[0] - 0.6 * ppm, p[1] - 9 * ppm, 1.2 * ppm, 4 * ppm); c.fillRect(p[0] - 0.6 * ppm, p[1] + 5 * ppm, 1.2 * ppm, 4 * ppm);
+    c.fillRect(p[0] - 9 * ppm, p[1] - 0.6 * ppm, 4 * ppm, 1.2 * ppm); c.fillRect(p[0] + 5 * ppm, p[1] - 0.6 * ppm, 4 * ppm, 1.2 * ppm);
+    c.font = (2.2 * ppm) + 'px Arial';
+    ['123100', 'Sample Print AB', 'www.example.se'].forEach(function (t, i) { c.fillText(t, p[0], p[1] + (11 + i * 3) * ppm); });
+    c.restore();
+  }
+
   /* Returns { canvas, truth: [{x, y}] (mm) }. opts: { shots, seed, W, H, rotate, backing: [colour, colour] } */
   HM.makeSample = function (d, opts) {
     opts = opts || {};
     var rnd = HM.rng(opts.seed || 12345);
     var W = opts.W || 900, H = opts.H || 1100, n = opts.shots == null ? d.shots : opts.shots;
-    var R1 = HM.outerR(d), cardHalf = R1 + Math.max(8, d.step * 0.7);
+    var R1 = HM.outerR(d), cardHalf = d.card || R1 + Math.max(8, d.step * 0.7);
     var ppm = Math.min(W, H) * 0.86 / (2 * cardHalf);
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var ctx = cv.getContext('2d');
@@ -30,10 +49,11 @@
     var gx = (rnd() - 0.5) * d.sigma * 1.4, gy = (rnd() - 0.5) * d.sigma * 1.4, truth = [];
     for (var i = 0; i < n; i++) {
       var x = gx + rnd.gauss() * d.sigma * 0.7, y = gy + rnd.gauss() * d.sigma * 0.7;
-      var lim = R1 - d.cal;
+      var lim = Math.min(R1, d.card || R1) - d.cal;
       var r = Math.hypot(x, y); if (r > lim) { x *= lim / r; y *= lim / r; }
       truth.push({ x: x, y: y });
     }
+    if (d.card) drawCardPrint(cx, M, ppm, d.card);
     var hr = d.cal / 2 * ppm;
     truth.forEach(function (p) {
       var px = M.cx + p.x * ppm, py = M.cy - p.y * ppm;
