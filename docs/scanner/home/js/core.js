@@ -18,13 +18,41 @@ window.HM = window.HM || {};
     return HM.DISCIPLINES[0];
   };
 
+  // Calibers a session can use. mm is the bullet diameter, which sets the size of each hole.
+  HM.CALIBERS = [
+    { id: '4.5mm', name: '4,5 mm', mm: 4.5 },
+    { id: '22', name: '.22', mm: 5.6 },
+    { id: '32', name: '.32', mm: 7.9 },
+    { id: '38spl', name: '.38 Special', mm: 9.1 },
+    { id: '9mm', name: '9 mm', mm: 9.0 },
+    { id: '357mag', name: '.357 Magnum', mm: 9.1 },
+    { id: '44', name: '.44', mm: 10.9 },
+    { id: '45', name: '.45', mm: 11.5 }
+  ];
+  HM.caliber = function (id) {
+    for (var i = 0; i < HM.CALIBERS.length; i++) if (HM.CALIBERS[i].id === id) return HM.CALIBERS[i];
+    return null;
+  };
+  // The caliber a target type is normally shot with (used for new sessions and for sessions saved before calibers existed).
+  HM.defaultCaliber = function (d) { return d.cal < 5 ? '4.5mm' : '22'; };
+  HM.sessCaliber = function (sess) { return HM.caliber(sess.caliber) || HM.caliber(HM.defaultCaliber(HM.disc(sess.discipline))); };
+  HM.sessShooter = function (sess) { return sess.shooter || 'Me'; };
+  // The target type of a session with the hole size of the session's caliber.
+  var discCache = {};
+  HM.sessDisc = function (sess) {
+    var d = HM.disc(sess.discipline), c = HM.sessCaliber(sess), k = d.id + '|' + c.id;
+    if (!discCache[k]) { discCache[k] = Object.assign({}, d, { cal: c.mm, caliber: c.id }); }
+    return discCache[k];
+  };
+
   HM.ringR = function (d, n) { return d.r10 + (10 - n) * d.step; };
   HM.outerR = function (d) { return d.r10 + 9 * d.step; };
 
   // ISSF outward gauging: a shot scores the ring its edge touches.
-  HM.score = function (d, x, y) {
+  // cal (optional) overrides the hole diameter, for groups that mix calibers.
+  HM.score = function (d, x, y, cal) {
     var dist = Math.sqrt(x * x + y * y);
-    var dec = 1 + (HM.outerR(d) + d.cal / 2 - dist) / d.step;
+    var dec = 1 + (HM.outerR(d) + (cal || d.cal) / 2 - dist) / d.step;
     if (dec < 1) return { dec: 0, int: 0, x: false, dist: dist };
     dec = Math.min(10.9, Math.floor(dec * 10 + 1e-6) / 10);
     return { dec: dec, int: Math.min(10, Math.floor(dec + 1e-9)), x: dist <= d.xMaxD, dist: dist };
@@ -46,7 +74,7 @@ window.HM = window.HM || {};
     if (!n) return st;
     var minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
     pts.forEach(function (p) {
-      var s = HM.score(d, p.x, p.y);
+      var s = HM.score(d, p.x, p.y, p.cal);
       st.scores.push(s);
       st.total += s.int; st.totalDec += s.dec; if (s.x) st.xs++;
       st.mx += p.x; st.my += p.y;
