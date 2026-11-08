@@ -155,12 +155,21 @@
   }
 
   // Runs the analysis on a stored picture and returns calibration + shots in its pixels.
+  // Orders a target's shots from lowest to highest score (ties: furthest from centre first),
+  // so shot 1 is always the weakest one.
+  function sortShots(t, d) {
+    var keyed = t.shots.map(function (sh) { var p = HM.toMM(t.calib, sh), sc = HM.score(d, p.x, p.y); return { sh: sh, dec: sc.dec, dist: sc.dist }; });
+    keyed.sort(function (a, b) { return a.dec - b.dec || b.dist - a.dist; });
+    t.shots = keyed.map(function (k) { return k.sh; });
+    return t;
+  }
+
   function analyseCanvas(big, d, expected, opts) {
     var small = scaled(big, big.width, big.height, 1000), k = big.width / small.width;
     var id = small.getContext('2d').getImageData(0, 0, small.width, small.height);
     var r = HM.analyse(id, d, { expected: expected, sensitivity: opts.sens, holes: opts.holes });
     r.calib = { cx: r.calib.cx * k, cy: r.calib.cy * k, sx: r.calib.sx * k, sy: r.calib.sy * k };
-    r.shots = r.shots.map(function (s) { return { u: s.u * k, v: s.v * k }; });
+    r.shots = sortShots({ calib: r.calib, shots: r.shots.map(function (s) { return { u: s.u * k, v: s.v * k }; }) }, d).shots;
     return r;
   }
 
@@ -305,6 +314,18 @@
     return '<section class="list-filter">' + sel('shooter', 'Shooter', 'All shooters') + sel('gun', 'Gun', 'All guns') + sel('caliber', 'Caliber', 'All calibers') + '</section>';
   }
 
+  /* ---------- theme ---------- */
+  // 'auto' follows the device setting; 'light' and 'dark' override it.
+  function getTheme() { try { var t = localStorage.getItem('hm-theme'); return t === 'light' || t === 'dark' ? t : 'auto'; } catch (e) { return 'auto'; } }
+  function applyTheme(t) {
+    if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    var meta = document.querySelector('meta[name=theme-color]');
+    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue('--bar').trim() || '#f6f6f6';
+  }
+  function setTheme(t) { try { if (t === 'auto') localStorage.removeItem('hm-theme'); else localStorage.setItem('hm-theme', t); } catch (e) { /* private mode */ } applyTheme(t); }
+  applyTheme(getTheme());
+  if (window.matchMedia) { var mq = matchMedia('(prefers-color-scheme: dark)'); var onMq = function () { applyTheme(getTheme()); }; if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq); }
+
   function viewSessions() {
     setBar(null, 'Sessions', '<button class="bar-btn" id="newBtn" aria-label="New session">+ New</button>');
     var html = '<section class="intro card"><div><h2>Score your paper targets</h2><p>Create a session, pick the target type, then photograph each card. Holes are found and scored for you, and you can add, move or remove any hit.</p></div>' +
@@ -323,6 +344,9 @@
       }).join('') + '</ul>';
     }
     html += '<div class="row footer-row"><button class="btn small" id="exportBtn"' + (S.sessions.length ? '' : ' disabled') + '>Save backup</button><button class="btn small" id="importBtn">Restore backup</button><a class="btn small" href="home/wiki/">Help</a></div>';
+    var th = getTheme();
+    html += '<div class="row theme-row">Appearance <div class="seg small" id="themeSeg" role="group" aria-label="Appearance">' +
+      [['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']].map(function (o) { return '<button data-theme="' + o[0] + '" class="' + (th === o[0] ? 'on' : '') + '" aria-pressed="' + (th === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div></div>';
     if (!HM.store.persistent()) html += '<p class="muted small center">This browser is not keeping data between visits; save a backup before closing.</p>';
     main.innerHTML = html;
     main.querySelectorAll('canvas.mini').forEach(function (cv) { var s = findSession(cv.dataset.sid); drawMini(cv, s, s.targets, { numbers: false }); });
@@ -333,6 +357,11 @@
     if ($('#clearFilter')) $('#clearFilter').onclick = function () { LF = { shooter: '', gun: '', caliber: '' }; setFilter(); };
     $('#demoBtn').onclick = function () { location.hash = '#/demo'; };
     $('#exportBtn').onclick = exportAll;
+    $('#themeSeg').onclick = function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      setTheme(b.dataset.theme);
+      this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); });
+    };
     $('#importBtn').onclick = function () { var i = document.getElementById('importInput'); i.value = ''; i.click(); };
   }
 
@@ -357,10 +386,10 @@
         '</div></section>';
     } else if (tab === 'targets') {
       if (!sess.targets.length) html += '<p class="empty">No targets yet. Take a photo of your first card.</p>';
-      if (sess.targets.length) html += '<p class="small muted">Decimal score of each shot; * marks an inner ten (X). Tap a target to check or edit its hits.</p>';
+      if (sess.targets.length) html += '<p class="small muted">Decimal score of each shot, lowest first; * marks an inner ten (X). Tap a target to check or edit its hits.</p>';
       html += '<div class="grid">' + sess.targets.map(function (t, i) {
         var ts = HM.stats(d, HM.targetShotsMM(t)), miss = Math.max(0, sess.shots - ts.n);
-        var vals = ts.scores.map(function (s) { return s.dec.toFixed(1) + (s.x ? '*' : ''); });
+        var vals = ts.scores.slice().sort(function (a, b) { return a.dec - b.dec; }).map(function (s) { return s.dec.toFixed(1) + (s.x ? '*' : ''); });
         for (var k = 0; k < miss; k++) vals.push('–');
         return '<a class="card tcard" href="#/s/' + sess.id + '/t/' + t.id + '"><canvas class="tplot" data-t="' + t.id + '"></canvas>' +
           '<div class="tc-head"><strong>Target ' + (i + 1) + '</strong><b>' + HM.fmtScore(ts) + '</b></div>' +
@@ -701,7 +730,7 @@
     document.addEventListener('keydown', onKey);
     var onR = function () { var cx = (cw / 2 - E.ox) / E.scale, cy = (ch / 2 - E.oy) / E.scale; size(); E.ox = cw / 2 - cx * E.scale; E.oy = ch / 2 - cy * E.scale; render(); };
     window.addEventListener('resize', onR);
-    cleanup = function () { document.removeEventListener('keydown', onKey); window.removeEventListener('resize', onR); clearTimeout(saveTimer); save(sess); };
+    cleanup = function () { document.removeEventListener('keydown', onKey); window.removeEventListener('resize', onR); clearTimeout(saveTimer); sortShots(t, d); save(sess); };
 
     $('#info').textContent = t.info || '';
     $('#info').className = 'info' + (t.found === false ? ' warn' : '');
