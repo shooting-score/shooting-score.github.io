@@ -280,13 +280,42 @@
   });
 
   /* ---------- views ---------- */
+  // Sessions-page filter. '' means "all"; shooter and gun compare ignoring case, 'g:' is a session without a gun.
+  var LF = { shooter: '', gun: '', caliber: '' };
+  try { Object.assign(LF, JSON.parse(localStorage.getItem('hm-list-filter')) || {}); } catch (e) { /* none saved */ }
+  function lfKeys(s) { return { shooter: HM.sessShooter(s).toLowerCase(), gun: 'g:' + (s.gun || '').toLowerCase(), caliber: HM.sessCaliber(s).id }; }
+  function lfMatch(s) { var k = lfKeys(s); return ['shooter', 'gun', 'caliber'].every(function (f) { return !LF[f] || LF[f] === k[f]; }); }
+  function filterBar() {
+    var opts = { shooter: {}, gun: {}, caliber: {} };
+    S.sessions.forEach(function (s) {
+      var k = lfKeys(s);
+      opts.shooter[k.shooter] = opts.shooter[k.shooter] || HM.sessShooter(s);
+      opts.gun[k.gun] = opts.gun[k.gun] || s.gun || 'No gun';
+      opts.caliber[k.caliber] = HM.sessCaliber(s).name;
+    });
+    // Forget a saved choice that no session has any more.
+    ['shooter', 'gun', 'caliber'].forEach(function (f) { if (LF[f] && !opts[f][LF[f]]) LF[f] = ''; });
+    var order = { caliber: HM.CALIBERS.map(function (c) { return c.id; }) };
+    var sel = function (f, label, all) {
+      var keys = Object.keys(opts[f]);
+      keys.sort(f === 'caliber' ? function (a, b) { return order.caliber.indexOf(a) - order.caliber.indexOf(b); } : function (a, b) { return (a === 'g:') - (b === 'g:') || opts[f][a].localeCompare(opts[f][b]); });
+      return '<label class="filter">' + label + '<select data-f="' + f + '"><option value="">' + all + '</option>' +
+        keys.map(function (k) { return '<option value="' + esc(k) + '"' + (LF[f] === k ? ' selected' : '') + '>' + esc(opts[f][k]) + '</option>'; }).join('') + '</select></label>';
+    };
+    return '<section class="list-filter">' + sel('shooter', 'Shooter', 'All shooters') + sel('gun', 'Gun', 'All guns') + sel('caliber', 'Caliber', 'All calibers') + '</section>';
+  }
+
   function viewSessions() {
     setBar(null, 'Sessions', '<button class="bar-btn" id="newBtn" aria-label="New session">+ New</button>');
     var html = '<section class="intro card"><div><h2>Score your paper targets</h2><p>Create a session, pick the target type, then photograph each card. Holes are found and scored for you, and you can add, move or remove any hit.</p></div>' +
       '<div class="row"><button class="btn primary" id="newBtn2">+ New session</button><button class="btn" id="demoBtn">Try a demo session</button></div></section>';
     if (!S.sessions.length) html += '<p class="empty">No sessions yet.</p>';
     else {
-      html += '<ul class="list">' + S.sessions.map(function (s) {
+      html += filterBar();
+      var shown = S.sessions.filter(lfMatch), filtered = shown.length !== S.sessions.length;
+      if (filtered) html += '<p class="small muted list-count">Showing ' + shown.length + ' of ' + S.sessions.length + ' sessions · <button class="linkbtn" id="clearFilter">Show all</button></p>';
+      if (!shown.length) html += '<p class="empty">No sessions match this filter.</p>';
+      else html += '<ul class="list">' + shown.map(function (s) {
         var d = HM.sessDisc(s), st = HM.stats(d, sessionShots(s));
         return '<li><a href="#/s/' + s.id + '" class="list-item"><canvas class="mini" data-sid="' + s.id + '" width="56" height="56"></canvas>' +
           '<span class="li-main"><strong>' + esc(s.name) + '</strong><span class="muted">' + esc(d.name) + '</span><span class="muted small">' + esc(shooterLine(s)) + '</span><span class="muted small">' + esc(fmtDate(s.date)) + ' · ' + s.targets.length + ' target' + (s.targets.length === 1 ? '' : 's') + ' · ' + st.n + ' shots</span></span>' +
@@ -299,6 +328,9 @@
     main.querySelectorAll('canvas.mini').forEach(function (cv) { var s = findSession(cv.dataset.sid); drawMini(cv, s, s.targets, { numbers: false }); });
     var create = function () { openSessionDialog(null, function (v) { newSession(v).then(function (s) { location.hash = '#/s/' + s.id; }); }); };
     $('#newBtn').onclick = create; $('#newBtn2').onclick = create;
+    var setFilter = function () { try { localStorage.setItem('hm-list-filter', JSON.stringify(LF)); } catch (e) { /* private mode */ } viewSessions(); };
+    main.querySelectorAll('.list-filter select').forEach(function (el) { el.onchange = function () { LF[el.dataset.f] = el.value; setFilter(); }; });
+    if ($('#clearFilter')) $('#clearFilter').onclick = function () { LF = { shooter: '', gun: '', caliber: '' }; setFilter(); };
     $('#demoBtn').onclick = function () { location.hash = '#/demo'; };
     $('#exportBtn').onclick = exportAll;
     $('#importBtn').onclick = function () { var i = document.getElementById('importInput'); i.value = ''; i.click(); };
