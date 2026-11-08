@@ -1,4 +1,4 @@
-/* HitMark sample photos: draws a realistic shot paper target (card on a light backing)
+/* ShootingScanner sample photos: draws a realistic shot paper target (card on a light backing)
    so the scanner can be tried without a camera. */
 (function (HM) {
   'use strict';

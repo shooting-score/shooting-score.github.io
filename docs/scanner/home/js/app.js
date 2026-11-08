@@ -1,4 +1,4 @@
-/* HitMark web app: sessions, scanning, editing hits, statistics and heat maps. */
+/* ShootingScanner web app: sessions, scanning, editing hits, statistics and heat maps. */
 (function (HM) {
   'use strict';
 
@@ -38,7 +38,7 @@
     document.getElementById('barLeft').innerHTML = left || '<a class="bar-link" href="home/">&#8249; Website</a>';
     document.getElementById('barTitle').textContent = title;
     document.getElementById('barRight').innerHTML = right || '';
-    document.title = title + ' – HitMark';
+    document.title = title + ' – ShootingScanner';
   }
 
   /* ---------- small canvas helpers ---------- */
@@ -233,7 +233,7 @@
     Promise.all(jobs).then(function () {
       var blob = new Blob([JSON.stringify({ app: 'hitmark', version: 1, exported: new Date().toISOString(), sessions: S.sessions, images: images })], { type: 'application/json' });
       var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = 'hitmark-backup-' + today() + '.json';
+      a.href = URL.createObjectURL(blob); a.download = 'shootingscanner-backup-' + today() + '.json';
       document.body.appendChild(a); a.click(); a.remove();
       busy(false); toast('Backup saved to your downloads.');
     });
@@ -257,7 +257,7 @@
         toast(added ? 'Restored ' + added + ' session' + (added === 1 ? '' : 's') + '.' : 'Those sessions are already here.');
         route();
       });
-    }).catch(function () { toast('That file is not a HitMark backup.'); });
+    }).catch(function () { toast('That file is not a ShootingScanner backup.'); });
   });
 
   /* ---------- views ---------- */

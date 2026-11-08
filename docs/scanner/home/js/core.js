@@ -1,4 +1,4 @@
-/* HitMark core: target definitions, scoring and group statistics. */
+/* ShootingScanner core: target definitions, scoring and group statistics. */
 window.HM = window.HM || {};
 (function (HM) {
   'use strict';

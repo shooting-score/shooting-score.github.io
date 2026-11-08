@@ -1,4 +1,4 @@
-/* HitMark website: panels, phone navigation, slider and the drawn app screens. */
+/* ShootingScanner website: panels, phone navigation, slider and the drawn app screens. */
 (function (HM) {
   'use strict';
 

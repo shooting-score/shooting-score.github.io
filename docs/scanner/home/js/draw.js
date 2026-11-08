@@ -1,4 +1,4 @@
-/* HitMark drawing: target plots, shots, ring overlays and heat maps on a canvas. */
+/* ShootingScanner drawing: target plots, shots, ring overlays and heat maps on a canvas. */
 (function (HM) {
   'use strict';
 

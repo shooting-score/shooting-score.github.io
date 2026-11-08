@@ -1,4 +1,4 @@
-/* HitMark photo analysis: finds the black aiming mark, calibrates the rings and detects shot holes.
+/* ShootingScanner photo analysis: finds the black aiming mark, calibrates the rings and detects shot holes.
    Works on plain ImageData so it can run anywhere a canvas exists. */
 (function (HM) {
   'use strict';

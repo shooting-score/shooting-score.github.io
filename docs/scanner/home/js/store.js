@@ -1,4 +1,4 @@
-/* HitMark storage: sessions and target photos kept in the browser (IndexedDB), with a memory fallback. */
+/* ShootingScanner storage: sessions and target photos kept in the browser (IndexedDB), with a memory fallback. */
 (function (HM) {
   'use strict';
   var mem = { sessions: {}, images: {} }, dbp = null, useMem = !window.indexedDB;
