@@ -18,9 +18,13 @@
   function findSession(id) { for (var i = 0; i < S.sessions.length; i++) if (S.sessions[i].id === id) return S.sessions[i]; return null; }
   function sessionShots(sess) {
     var all = [];
-    sess.targets.forEach(function (t, ti) { HM.targetShotsMM(t).forEach(function (p) { p.t = ti; all.push(p); }); });
+    var cal = HM.sessCaliber(sess).mm;
+    sess.targets.forEach(function (t, ti) { HM.targetShotsMM(t).forEach(function (p) { p.t = ti; p.cal = cal; all.push(p); }); });
     return all;
   }
+  // One line describing who shot the session and with what, e.g. "Me · Walther LP500 · 4,5 mm".
+  function shooterLine(s) { return [HM.sessShooter(s), s.gun, HM.sessCaliber(s).name].filter(Boolean).join(' · '); }
+  function uniq(list) { var seen = {}; return list.filter(function (x) { if (!x || seen[x.toLowerCase()]) return false; seen[x.toLowerCase()] = 1; return true; }); }
   function save(sess) { sess.updated = Date.now(); return HM.store.saveSession(sess); }
   var saveTimer = null;
   function saveSoon(sess) { clearTimeout(saveTimer); saveTimer = setTimeout(function () { save(sess); }, 300); }
@@ -44,7 +48,7 @@
   /* ---------- small canvas helpers ---------- */
   function drawMini(cv, sess, targets, opts) {
     opts = opts || {};
-    var d = HM.disc(sess.discipline), w = cv.clientWidth || cv.width, h = cv.clientHeight || cv.height;
+    var d = HM.sessDisc(sess), w = cv.clientWidth || cv.width, h = cv.clientHeight || cv.height;
     var ctx = HM.prepCanvas(cv, w, h);
     var pts = [], colors = [];
     targets.forEach(function (t) {
@@ -84,11 +88,18 @@
   /* ---------- session dialog ---------- */
   var dlg = document.getElementById('sessionDialog'), form = document.getElementById('sessionForm'), dlgDone = null;
   document.getElementById('disciplineSelect').innerHTML = HM.DISCIPLINES.map(function (d) { return '<option value="' + d.id + '">' + esc(d.name) + '</option>'; }).join('');
-  form.discipline.addEventListener('change', function () { if (!form.dataset.edit) form.shots.value = HM.disc(form.discipline.value).shots; });
+  document.getElementById('caliberSelect').innerHTML = HM.CALIBERS.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('');
+  form.discipline.addEventListener('change', function () {
+    if (form.dataset.edit) return;
+    var d = HM.disc(form.discipline.value);
+    form.shots.value = d.shots;
+    if (!form.dataset.calTouched) form.caliber.value = HM.defaultCaliber(d);
+  });
+  form.caliber.addEventListener('change', function () { form.dataset.calTouched = '1'; });
   document.getElementById('sessionCancel').addEventListener('click', function () { dlg.close(); });
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    var v = { name: form.name.value.trim() || 'Training', date: form.date.value || today(), discipline: form.discipline.value, shots: Math.max(1, Math.min(60, +form.shots.value || 5)), notes: form.notes.value.trim() };
+    var v = { name: form.name.value.trim() || 'Training', shooter: form.shooter.value.trim() || 'Me', gun: form.gun.value.trim(), caliber: form.caliber.value, date: form.date.value || today(), discipline: form.discipline.value, shots: Math.max(1, Math.min(60, +form.shots.value || 5)), notes: form.notes.value.trim() };
     dlg.close();
     if (dlgDone) dlgDone(v);
   });
@@ -98,6 +109,14 @@
     form.name.value = sess ? sess.name : 'Training';
     form.date.value = sess ? sess.date : today();
     form.discipline.value = sess ? sess.discipline : (localStorage.getItem('hm-last-disc') || 'ap10');
+    form.shooter.value = sess ? HM.sessShooter(sess) : 'Me';
+    form.gun.value = sess ? (sess.gun || '') : '';
+    form.caliber.value = sess ? HM.sessCaliber(sess).id : HM.defaultCaliber(HM.disc(form.discipline.value));
+    form.dataset.calTouched = '';
+    // Suggest shooters and guns used before.
+    var opt = function (x) { return '<option value="' + esc(x) + '"></option>'; };
+    document.getElementById('shooterList').innerHTML = uniq(['Me'].concat(S.sessions.map(HM.sessShooter))).map(opt).join('');
+    document.getElementById('gunList').innerHTML = uniq(S.sessions.map(function (s) { return s.gun; })).map(opt).join('');
     form.shots.value = sess ? sess.shots : HM.disc(form.discipline.value).shots;
     form.notes.value = sess ? (sess.notes || '') : '';
     dlgDone = done;
@@ -106,7 +125,7 @@
   }
 
   function newSession(v) {
-    var sess = { id: HM.uid(), name: v.name, date: v.date, discipline: v.discipline, shots: v.shots, notes: v.notes, targets: [], created: Date.now() };
+    var sess = { id: HM.uid(), name: v.name, shooter: v.shooter, gun: v.gun, caliber: v.caliber, date: v.date, discipline: v.discipline, shots: v.shots, notes: v.notes, targets: [], created: Date.now() };
     try { localStorage.setItem('hm-last-disc', v.discipline); } catch (e) { /* private mode */ }
     S.sessions.unshift(sess);
     return save(sess).then(function () { return sess; });
@@ -148,7 +167,7 @@
   function addPhotoTarget(sess, source, w, h) {
     busy(true, 'Scanning target…');
     return new Promise(function (r) { setTimeout(r, 40); }).then(function () {
-      var d = HM.disc(sess.discipline);
+      var d = HM.sessDisc(sess);
       var big = scaled(source, w, h, 1600);
       var r = analyseCanvas(big, d, sess.shots, { sens: 0.5, holes: 'light' });
       var t = { id: HM.uid(), created: Date.now(), imgW: big.width, imgH: big.height, hasImage: true, calib: r.calib, shots: r.shots, info: r.message, found: r.found, holes: 'light', sens: 0.5 };
@@ -169,13 +188,13 @@
   }
 
   function addSampleTarget(sess, seed) {
-    var d = HM.disc(sess.discipline);
+    var d = HM.sessDisc(sess);
     var smp = HM.makeSample(d, { shots: sess.shots, seed: seed || Math.floor(Math.random() * 1e9) });
     return addPhotoTarget(sess, smp.canvas, smp.canvas.width, smp.canvas.height);
   }
 
   function addManualTarget(sess) {
-    var d = HM.disc(sess.discipline), ppm = 600 / (2 * (HM.outerR(d) + Math.max(6, d.step * 0.6)));
+    var d = HM.sessDisc(sess), ppm = 600 / (2 * (HM.outerR(d) + Math.max(6, d.step * 0.6)));
     var size = 600;
     var t = { id: HM.uid(), created: Date.now(), imgW: size, imgH: size, hasImage: false, calib: { cx: size / 2, cy: size / 2, sx: ppm, sy: ppm }, shots: [], info: 'Tap “Add shot”, then tap the target where each shot landed.', found: true };
     sess.targets.push(t);
@@ -189,7 +208,7 @@
     dates.forEach(function (ago, si) {
       chain = chain.then(function () {
         var dt = new Date(Date.now() - ago * 86400000);
-        var v = { name: si === 0 ? 'Demo session' : 'Demo training ' + (dates.length - si), date: dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0'), discipline: 'ap10', shots: 5, notes: 'Generated sample targets' };
+        var v = { name: si === 0 ? 'Demo session' : 'Demo training ' + (dates.length - si), date: dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0'), discipline: 'ap10', shooter: 'Me', gun: '', caliber: '4.5mm', shots: 5, notes: 'Generated sample targets' };
         return newSession(v).then(function (sess) {
           made.push(sess);
           var c = Promise.resolve();
@@ -268,9 +287,9 @@
     if (!S.sessions.length) html += '<p class="empty">No sessions yet.</p>';
     else {
       html += '<ul class="list">' + S.sessions.map(function (s) {
-        var d = HM.disc(s.discipline), st = HM.stats(d, sessionShots(s));
+        var d = HM.sessDisc(s), st = HM.stats(d, sessionShots(s));
         return '<li><a href="#/s/' + s.id + '" class="list-item"><canvas class="mini" data-sid="' + s.id + '" width="56" height="56"></canvas>' +
-          '<span class="li-main"><strong>' + esc(s.name) + '</strong><span class="muted">' + esc(d.name) + '</span><span class="muted small">' + esc(fmtDate(s.date)) + ' · ' + s.targets.length + ' target' + (s.targets.length === 1 ? '' : 's') + ' · ' + st.n + ' shots</span></span>' +
+          '<span class="li-main"><strong>' + esc(s.name) + '</strong><span class="muted">' + esc(d.name) + '</span><span class="muted small">' + esc(shooterLine(s)) + '</span><span class="muted small">' + esc(fmtDate(s.date)) + ' · ' + s.targets.length + ' target' + (s.targets.length === 1 ? '' : 's') + ' · ' + st.n + ' shots</span></span>' +
           '<span class="li-score"><b>' + HM.fmtScore(st) + '</b><small>' + (st.n ? st.avgDec.toFixed(1) + ' avg' : '') + '</small></span></a></li>';
       }).join('') + '</ul>';
     }
@@ -287,10 +306,10 @@
 
   function viewSession(sess, tab) {
     tab = tab || 'hits';
-    var d = HM.disc(sess.discipline);
+    var d = HM.sessDisc(sess);
     setBar('<a class="bar-link" href="#/">&#8249; Sessions</a>', sess.name, '<button class="bar-btn" id="editSess">Edit</button>');
     var all = sessionShots(sess), st = HM.stats(d, all);
-    var html = '<section class="card sess-head"><div><div class="muted">' + esc(d.name) + ' · ' + esc(fmtDate(sess.date)) + ' · ' + sess.shots + ' shots per target</div>' +
+    var html = '<section class="card sess-head"><div><div><strong>' + esc(shooterLine(sess)) + '</strong></div><div class="muted">' + esc(d.name) + ' · ' + esc(fmtDate(sess.date)) + ' · ' + sess.shots + ' shots per target</div>' +
       (sess.notes ? '<div class="small muted">' + esc(sess.notes) + '</div>' : '') + '</div>' +
       '<div class="big-score"><b>' + HM.fmtScore(st) + '</b><span>' + st.totalDec.toFixed(1) + ' · ' + st.n + ' shots · ' + sess.targets.length + ' targets</span></div></section>' +
       '<section class="add-row"><button class="btn primary" id="camBtn">&#128247; Take photo</button><button class="btn" id="upBtn">Upload photo</button><button class="btn" id="smpBtn">Sample photo</button><button class="btn" id="manBtn">Plot by hand</button></section>' +
@@ -318,9 +337,15 @@
       }).join('') + '</div>';
     } else {
       html += '<section class="card split"><div class="plot-box"><canvas id="heatCv" class="plot"></canvas>' +
-        '<div class="seg small" id="scopeSeg"><button data-d="0" class="on">This session</button><button data-d="7">7 days</button><button data-d="30">30 days</button><button data-d="90">90 days</button><button data-d="-1">All</button></div></div>' +
+        '<div class="seg small" id="scopeSeg"><button data-d="0" class="on">This session</button><button data-d="7">7 days</button><button data-d="30">30 days</button><button data-d="90">90 days</button><button data-d="-1">All</button></div>' +
+        '<label class="filter">Include sessions by <select id="whoSel">' +
+          '<option value="all">Every shooter</option>' +
+          '<option value="shooter">' + esc(HM.sessShooter(sess)) + '</option>' +
+          '<option value="gun">' + esc(HM.sessShooter(sess)) + ' · ' + esc(sess.gun || 'no gun given') + '</option>' +
+          '<option value="caliber">' + esc(shooterLine(Object.assign({}, sess, { gun: sess.gun || 'no gun given' }))) + '</option>' +
+        '</select></label></div>' +
         '<div class="side"><h3>Where your hits land</h3><p id="heatCap" class="muted"></p><div id="heatStats"></div>' +
-        '<p class="small muted">Red and yellow show where most shots landed; dark blue means no hits. Day ranges include every session with this target type.</p></div></section>';
+        '<p class="small muted">Red and yellow show where most shots landed; dark blue means no hits. Day ranges include every session with this target type; use the list below them to keep only one shooter, gun or caliber.</p></div></section>';
     }
     html += '<div class="row footer-row"><button class="btn small danger" id="delSess">Delete session</button></div>';
     main.innerHTML = html;
@@ -328,9 +353,10 @@
     $('#editSess').onclick = function () {
       openSessionDialog(sess, function (v) {
         sess.name = v.name; sess.date = v.date; sess.shots = v.shots; sess.notes = v.notes;
+        sess.shooter = v.shooter; sess.gun = v.gun; sess.caliber = v.caliber;
         if (v.discipline !== sess.discipline) {
           if (sess.targets.length && !confirm('Change the target type? Shots keep their place on the pictures but rings are measured again.')) { save(sess).then(route); return; }
-          var od = HM.disc(sess.discipline), nd = HM.disc(v.discipline);
+          var od = HM.sessDisc(sess), nd = HM.disc(v.discipline);
           sess.targets.forEach(function (t) { if (!t.hasImage) return; var k = od.blackR / nd.blackR; t.calib.sx *= k; t.calib.sy *= k; });
           sess.discipline = v.discipline;
         }
@@ -358,13 +384,22 @@
     } else if (tab === 'targets') {
       redraw = function () { main.querySelectorAll('canvas.tplot').forEach(function (c) { var t = sess.targets.filter(function (x) { return x.id === c.dataset.t; })[0]; drawMini(c, sess, [t], { zoom: 0, centre: true }); }); };
     } else {
-      var days = 0, hc = $('#heatCv');
+      var days = 0, who = 'all', hc = $('#heatCv');
+      var key = function (s) { return { shooter: HM.sessShooter(s).toLowerCase(), gun: (s.gun || '').toLowerCase(), caliber: HM.sessCaliber(s).id }; };
+      var me = key(sess);
+      var sameWho = function (s) {
+        if (who === 'all') return true;
+        var k = key(s);
+        if (k.shooter !== me.shooter) return false;
+        if ((who === 'gun' || who === 'caliber') && k.gun !== me.gun) return false;
+        return who !== 'caliber' || k.caliber === me.caliber;
+      };
       redraw = function () {
         var pts = [], sessions = [sess];
         if (days !== 0) {
           var lim = days > 0 ? new Date(Date.now() - days * 86400000) : null;
           sessions = S.sessions.filter(function (s) {
-            if (s.discipline !== sess.discipline) return false;
+            if (s.discipline !== sess.discipline || !sameWho(s)) return false;
             if (!lim) return true;
             var p = (s.date || '').split('-'); return new Date(+p[0], +p[1] - 1, +p[2]) >= new Date(lim.getFullYear(), lim.getMonth(), lim.getDate());
           });
@@ -375,8 +410,14 @@
         pts.forEach(function (p) { ext = Math.max(ext, Math.abs(p.x) + d.cal * 2, Math.abs(p.y) + d.cal * 2); });
         ext = Math.min(ext, HM.outerR(d) + d.cal);
         HM.drawHeatmap(ctx, d, HM.fitMap(w, h, ext), pts, w, h);
-        $('#heatCap').textContent = 'Distribution of ' + pts.length + ' shot' + (pts.length === 1 ? '' : 's') + (days === 0 ? ' in this session.' : (days > 0 ? ' from the last ' + days + ' days' : ' from all sessions') + ' (' + sessions.length + ' session' + (sessions.length === 1 ? '' : 's') + ').');
+        $('#heatCap').textContent = 'Distribution of ' + pts.length + ' shot' + (pts.length === 1 ? '' : 's') + (days === 0 ? ' in this session.' : (days > 0 ? ' from the last ' + days + ' days' : ' from all sessions') + (who === 'all' ? '' : ' by ' + $('#whoSel').selectedOptions[0].textContent) + ' (' + sessions.length + ' session' + (sessions.length === 1 ? '' : 's') + ').');
         $('#heatStats').innerHTML = statsGrid(d, hst);
+      };
+      $('#whoSel').onchange = function () {
+        who = this.value;
+        // A shooter filter only makes sense across sessions, so leave "This session" for "All".
+        if (days === 0 && who !== 'all') { days = -1; $('#scopeSeg').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x.dataset.d === '-1'); }); }
+        redraw();
       };
       $('#scopeSeg').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; days = +b.dataset.d; this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); }); redraw(); };
     }
@@ -388,7 +429,7 @@
 
   /* ---------- target editor ---------- */
   function viewEditor(sess, t) {
-    var d = HM.disc(sess.discipline), idx = sess.targets.indexOf(t);
+    var d = HM.sessDisc(sess), idx = sess.targets.indexOf(t);
     setBar('<a class="bar-link" href="#/s/' + sess.id + '/targets">&#8249; ' + esc(sess.name) + '</a>', 'Target ' + (idx + 1), '<a class="bar-btn" href="#/s/' + sess.id + '/targets">Done</a>');
     main.innerHTML =
       '<div class="editor">' +

@@ -113,11 +113,15 @@ h2 { font-size: 20px; } h3 { font-size: 16px; }
 .ed-score b { font-size: 30px; } .ed-score span { color: var(--muted); }
 .shots { margin: 6px 0 10px; }
 
-.dlg { border: 0; border-radius: 14px; padding: 18px; width: min(420px, calc(100vw - 24px)); box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+.dlg { max-height: calc(100vh - 24px); overflow: auto; border: 0; border-radius: 14px; padding: 18px; width: min(420px, calc(100vw - 24px)); box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 .dlg::backdrop { background: rgba(0,0,0,0.35); }
 .dlg h2 { margin-bottom: 12px; }
 .dlg label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
 .dlg input, .dlg select, .dlg textarea { font: inherit; font-size: 16px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; color: var(--text); background: #fff; width: 100%; }
+.dlg .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dlg label small { font-size: 11px; }
+.filter { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+.filter select { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 8px; color: var(--text); background: #fff; max-width: 100%; }
 .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 
 .busy { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 50; }

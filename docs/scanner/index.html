@@ -22,10 +22,16 @@
   <form method="dialog" id="sessionForm">
     <h2 id="sessionDialogTitle">New session</h2>
     <label>Name<input name="name" required maxlength="60" placeholder="Training"></label>
+    <label>Shooter<input name="shooter" required maxlength="60" placeholder="Me" list="shooterList" autocomplete="off"></label>
+    <div class="pair">
+      <label><span>Gun <small>(optional)</small></span><input name="gun" maxlength="60" placeholder="e.g. Walther LP500" list="gunList" autocomplete="off"></label>
+      <label>Caliber<select name="caliber" id="caliberSelect" required></select></label>
+    </div>
+    <datalist id="shooterList"></datalist><datalist id="gunList"></datalist>
     <label>Date<input name="date" type="date" required></label>
     <label>Target type<select name="discipline" id="disciplineSelect"></select></label>
     <label>Shots per target<input name="shots" type="number" min="1" max="60" required></label>
-    <label>Notes<textarea name="notes" rows="2" maxlength="400" placeholder="Pistol, pellets, conditions…"></textarea></label>
+    <label>Notes<textarea name="notes" rows="2" maxlength="400" placeholder="Pellets, ammunition, conditions…"></textarea></label>
     <div class="dlg-actions">
       <button type="button" class="btn" id="sessionCancel">Cancel</button>
       <button type="submit" class="btn primary" value="ok">Save</button>
