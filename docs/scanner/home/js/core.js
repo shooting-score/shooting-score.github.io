@@ -8,6 +8,10 @@ window.HM = window.HM || {};
   // innerR: inner-ten ring radius (0 = none), xMaxD: furthest centre distance that is an inner ten.
   HM.DISCIPLINES = [
     { id: 'ap10', name: 'ISSF 10 m Air Pistol', short: '10m Air Pistol', cal: 4.5, r10: 5.75, step: 8, blackR: 29.75, innerR: 2.5, xMaxD: 4.75, numbers: 8, shots: 5, sigma: 7 },
+    // Training-only air pistol card: same rings, but the card is only 140 mm square, so ring 1 shows only in the
+    // corners and ring 2 touches the edges. card: half the card side (mm); numFrom: lowest printed ring number;
+    // rings: target type with the same ring sizes (its sessions are shown together in the heat map).
+    { id: 'ap10t', name: 'ISSF 10 m Air Pistol – training card', short: '10m Air Pistol training', cal: 4.5, r10: 5.75, step: 8, blackR: 29.75, innerR: 2.5, xMaxD: 4.75, numbers: 8, numFrom: 2, card: 70, rings: 'ap10', shots: 5, sigma: 7 },
     { id: 'ar10', name: 'ISSF 10 m Air Rifle', short: '10m Air Rifle', cal: 4.5, r10: 0.25, step: 2.5, blackR: 15.25, innerR: 0, xMaxD: 2.0, numbers: 8, shots: 1, sigma: 2.2, dot: true },
     { id: 'p25', name: 'ISSF 25 m Precision / 50 m Pistol', short: '25m/50m Pistol', cal: 5.6, r10: 25, step: 25, blackR: 100, innerR: 12.5, xMaxD: 15.3, numbers: 8, shots: 5, sigma: 22 },
     { id: 'r50', name: 'ISSF 50 m Rifle', short: '50m Rifle', cal: 5.6, r10: 5.2, step: 8, blackR: 56.2, innerR: 2.5, xMaxD: 5.3, numbers: 8, shots: 1, sigma: 5 }
@@ -44,6 +48,11 @@ window.HM = window.HM || {};
     if (!discCache[k]) { discCache[k] = Object.assign({}, d, { cal: c.mm, caliber: c.id }); }
     return discCache[k];
   };
+
+  // Half the side of the printed card (mm), and how far from the centre a plot has to reach to show it all.
+  HM.cardHalf = function (d) { return d.card || HM.outerR(d) + Math.max(6, d.step * 0.6); };
+  HM.viewR = function (d) { return d.card ? d.card + d.cal * 0.5 : HM.outerR(d) + d.cal; };
+  HM.sameRings = function (a, b) { return (a.rings || a.id) === (b.rings || b.id); };
 
   HM.ringR = function (d, n) { return d.r10 + (10 - n) * d.step; };
   HM.outerR = function (d) { return d.r10 + 9 * d.step; };

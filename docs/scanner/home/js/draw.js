@@ -17,11 +17,19 @@
     ctx.save();
     if (opts.paper !== false) {
       ctx.fillStyle = opts.paperColor || HM.PAPER;
-      if (opts.fillRect) ctx.fillRect(opts.fillRect[0], opts.fillRect[1], opts.fillRect[2], opts.fillRect[3]);
-      else {
-        var half = (R1 + Math.max(6, d.step * 0.6));
-        ctx.fillRect(M.cx - half * M.sx, M.cy - half * M.sy, 2 * half * M.sx, 2 * half * M.sy);
+      var half = HM.cardHalf(d);
+      if (opts.fillRect && d.card) {
+        // A small card: what lies outside it is the backing, not paper.
+        ctx.fillStyle = opts.backColor || '#d8d3c8';
+        ctx.fillRect(opts.fillRect[0], opts.fillRect[1], opts.fillRect[2], opts.fillRect[3]);
+        ctx.fillStyle = opts.paperColor || HM.PAPER;
       }
+      if (opts.fillRect && !d.card) ctx.fillRect(opts.fillRect[0], opts.fillRect[1], opts.fillRect[2], opts.fillRect[3]);
+      else ctx.fillRect(M.cx - half * M.sx, M.cy - half * M.sy, 2 * half * M.sx, 2 * half * M.sy);
+    }
+    if (d.card) {
+      // Rings stop at the edge of the card.
+      ctx.beginPath(); ctx.rect(M.cx - d.card * M.sx, M.cy - d.card * M.sy, 2 * d.card * M.sx, 2 * d.card * M.sy); ctx.clip();
     }
     // aiming mark
     ctx.fillStyle = HM.BLACK;
@@ -39,7 +47,7 @@
       var fs = Math.max(5, Math.min(d.step * 0.42, 9) * s);
       ctx.font = fs + 'px Arial, Helvetica, sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      for (var k = 1; k <= d.numbers; k++) {
+      for (var k = d.numFrom || 1; k <= d.numbers; k++) {
         var rm = (HM.ringR(d, k) + HM.ringR(d, k + 1)) / 2;
         ctx.fillStyle = rm < d.blackR ? '#e9e9e9' : '#222';
         ctx.fillText(k, M.cx - rm * M.sx, M.cy);
