@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="202" height="60" viewBox="0 0 202 60">
+  <rect x="0.5" y="0.5" width="201" height="59" rx="8" fill="#000" stroke="#a6a6a6"/>
+  <path d="M14 19c5-2 10-2 14 1v23c-4-3-9-3-14-1z" fill="#fff"/>
+  <path d="M42 19c-5-2-10-2-14 1v23c4-3 9-3 14-1z" fill="#d9d9d9"/>
+  <text x="62" y="20" fill="#fff" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" letter-spacing="0.6">READ THE</text>
+  <text x="61" y="46" fill="#fff" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" letter-spacing="-0.3">Help Guide</text>
+</svg>
