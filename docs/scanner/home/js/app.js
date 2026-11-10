@@ -15,6 +15,33 @@
     var p = s.split('-'); var d = new Date(+p[0], +p[1] - 1, +p[2]);
     return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   }
+  /* ---------- saved targets ---------- */
+  // A target is saved to its session's shooter with t.saved = true; the list is worked out from the sessions.
+  function shooterKey(s) { return HM.sessShooter(s).toLowerCase(); }
+  function savedItems() {
+    var out = [];
+    S.sessions.forEach(function (s) { s.targets.forEach(function (t, i) { if (t.saved) out.push({ sess: s, t: t, i: i }); }); });
+    return out;
+  }
+  // When the target was scanned, uploaded or plotted (falls back to the session date for old targets).
+  function targetTime(it) {
+    if (it.t.created) return it.t.created;
+    var p = (it.sess.date || '').split('-'); return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2]).getTime() : 0;
+  }
+  function fmtTime(ms) { return ms ? new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : ''; }
+  function starBtn(t, extra) {
+    return '<button type="button" class="star' + (extra ? ' ' + extra : '') + '" data-tid="' + t.id + '" aria-pressed="' + !!t.saved + '" title="' + (t.saved ? 'Remove from saved targets' : 'Save target') + '" aria-label="' + (t.saved ? 'Remove from saved targets' : 'Save target') + '">' + (t.saved ? '★' : '☆') + '</button>';
+  }
+  function toggleSaved(sess, t) {
+    t.saved = !t.saved;
+    toast(t.saved ? 'Saved to ' + HM.sessShooter(sess) + '’s saved targets.' : 'Removed from saved targets.', 2200);
+    return save(sess);
+  }
+  function confirmDeleteSaved(n, shooter) {
+    if (!n) return true;
+    return confirm(n === 1 && shooter ? 'This target is in ' + shooter + '’s saved targets. Delete it anyway?' : n + ' saved target' + (n === 1 ? '' : 's') + ' in this session will also be removed from saved targets. Delete anyway?');
+  }
+
   function findSession(id) { for (var i = 0; i < S.sessions.length; i++) if (S.sessions[i].id === id) return S.sessions[i]; return null; }
   function sessionShots(sess) {
     var all = [];
@@ -341,7 +368,8 @@
   function viewSessions() {
     setBar(null, 'Sessions', '<button class="bar-btn" id="newBtn" aria-label="New session">+ New</button>');
     var html = '<section class="intro card"><div><h2>Score your paper targets</h2><p>Create a session, pick the target type, then photograph each card. Holes are found and scored for you, and you can add, move or remove any hit.</p></div>' +
-      '<div class="row"><button class="btn primary" id="newBtn2">+ New session</button><button class="btn" id="demoBtn">Try a demo session</button></div></section>';
+      '<div class="row"><button class="btn primary" id="newBtn2">+ New session</button><button class="btn" id="demoBtn">Try a demo session</button>' +
+      (savedItems().length ? '<a class="btn" id="savedBtn" href="#/saved"><span class="star-ico" aria-hidden="true">★</span> Saved targets (' + savedItems().length + ')</a>' : '') + '</div></section>';
     if (!S.sessions.length) html += '<p class="empty">No sessions yet.</p>';
     else {
       html += filterBar();
@@ -377,6 +405,46 @@
     $('#importBtn').onclick = function () { var i = document.getElementById('importInput'); i.value = ''; i.click(); };
   }
 
+  function viewSaved(key) {
+    setBar('<a class="bar-link" href="#/">&#8249; Sessions</a>', 'Saved targets', '');
+    var all = savedItems(), people = {}, order = [];
+    all.forEach(function (it) {
+      var k = shooterKey(it.sess);
+      if (!people[k]) { people[k] = { name: HM.sessShooter(it.sess), n: 0 }; order.push(k); }
+      people[k].name = nicer(people[k].name, HM.sessShooter(it.sess)); people[k].n++;
+    });
+    order.sort(function (a, b) { return people[a].name.localeCompare(people[b].name); });
+    if (!key || !people[key]) key = (LF.shooter && people[LF.shooter]) ? LF.shooter : (people.me ? 'me' : order[0]);
+    var html = '';
+    if (!all.length) html += '<p class="empty">No saved targets yet. Tap ☆ on a target to save it.</p>';
+    else {
+      var items = all.filter(function (it) { return shooterKey(it.sess) === key; }).sort(function (a, b) { return targetTime(b) - targetTime(a); });
+      html += '<label class="filter saved-who">Shooter <select id="savedWho">' + order.map(function (k) { return '<option value="' + esc(k) + '"' + (k === key ? ' selected' : '') + '>' + esc(people[k].name) + ' (' + people[k].n + ')</option>'; }).join('') + '</select></label>';
+      html += '<h2 class="saved-title">' + esc(people[key].name) + '’s saved targets</h2>';
+      html += '<ul class="list">' + items.map(function (it) {
+        var s = it.sess, t = it.t, st = HM.stats(HM.sessDisc(s), HM.targetShotsMM(t));
+        return '<li class="saved-row"><a href="#/s/' + s.id + '/t/' + t.id + '" class="list-item"><canvas class="mini" data-sid="' + s.id + '" data-tid="' + t.id + '" width="56" height="56"></canvas>' +
+          '<span class="li-main"><strong>' + esc(fmtTime(targetTime(it))) + '</strong>' +
+          '<span class="muted">' + esc(discLine(s)) + '</span>' +
+          '<span class="muted small">Gun: ' + esc(s.gun || 'No gun') + ' · Caliber: ' + esc(HM.sessCaliber(s).name) + '</span>' +
+          '<span class="muted small">' + esc(s.name) + ' · Target ' + (it.i + 1) + '</span></span>' +
+          '<span class="li-score"><b>' + HM.fmtScore(st) + '</b><small>' + (st.n ? st.avgDec.toFixed(1) + ' avg' : '') + '</small></span></a>' + starBtn(t) + '</li>';
+      }).join('') + '</ul>';
+    }
+    main.innerHTML = html;
+    main.querySelectorAll('canvas.mini').forEach(function (cv) {
+      var s = findSession(cv.dataset.sid), t = s.targets.filter(function (x) { return x.id === cv.dataset.tid; })[0];
+      drawMini(cv, s, [t], { numbers: false, zoom: 0 });
+    });
+    if ($('#savedWho')) $('#savedWho').onchange = function () { location.hash = '#/saved/' + encodeURIComponent(this.value); };
+    main.querySelectorAll('.saved-row .star').forEach(function (b) {
+      b.onclick = function () {
+        var it = all.filter(function (x) { return x.t.id === b.dataset.tid; })[0];
+        if (it) toggleSaved(it.sess, it.t).then(function () { viewSaved(key); });
+      };
+    });
+  }
+
   function viewSession(sess, tab) {
     tab = tab || 'hits';
     var d = HM.sessDisc(sess);
@@ -404,7 +472,7 @@
         var vals = ts.scores.slice().sort(function (a, b) { return a.dec - b.dec; }).map(function (s) { return s.dec.toFixed(1) + (s.x ? '*' : ''); });
         for (var k = 0; k < miss; k++) vals.push('–');
         return '<a class="card tcard" href="#/s/' + sess.id + '/t/' + t.id + '"><canvas class="tplot" data-t="' + t.id + '"></canvas>' +
-          '<div class="tc-head"><strong>Target ' + (i + 1) + '</strong><b>' + HM.fmtScore(ts) + '</b></div>' +
+          '<div class="tc-head"><strong>Target ' + (i + 1) + ' ' + starBtn(t) + '</strong><b>' + HM.fmtScore(ts) + '</b></div>' +
           '<div class="small muted">' + vals.join(' · ') + '</div>' +
           '<div class="small muted">' + (ts.n > 1 ? 'Mean radius ' + HM.fmtMM(ts.mr) + ' · Spread ' + HM.fmtMM(ts.es) : (t.hasImage ? 'Scanned photo' : 'Plotted by hand')) + '</div></a>';
       }).join('') + '</div>';
@@ -440,9 +508,17 @@
     };
     $('#delSess').onclick = function () {
       if (!confirm('Delete “' + sess.name + '” and all its targets?')) return;
+      if (!confirmDeleteSaved(sess.targets.filter(function (t) { return t.saved; }).length)) return;
       S.sessions.splice(S.sessions.indexOf(sess), 1);
       HM.store.deleteSession(sess).then(function () { location.hash = '#/'; });
     };
+    main.querySelectorAll('.tcard .star').forEach(function (b) {
+      b.onclick = function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var t = sess.targets.filter(function (x) { return x.id === b.dataset.tid; })[0];
+        if (t) toggleSaved(sess, t).then(function () { b.outerHTML = starBtn(t); route(); });
+      };
+    });
     var go = function (t) { location.hash = '#/s/' + sess.id + '/t/' + t.id; };
     $('#camBtn').onclick = function () { pickFile(document.getElementById('cameraInput'), sess); };
     $('#upBtn').onclick = function () { pickFile(document.getElementById('fileInput'), sess); };
@@ -595,7 +671,8 @@
         } else rows += '<tr class="miss"><td>' + (i + 1) + '</td><td>–</td><td class="small muted">not placed</td></tr>';
       }
       $('#shotRows').innerHTML = rows;
-      $('#edScore').innerHTML = '<b>' + HM.fmtScore(st) + '</b><span>' + st.totalDec.toFixed(1) + ' · ' + st.n + ' of ' + sess.shots + ' shots</span>';
+      $('#edScore').innerHTML = '<b>' + HM.fmtScore(st) + '</b><span>' + st.totalDec.toFixed(1) + ' · ' + st.n + ' of ' + sess.shots + ' shots</span>' + starBtn(t, 'big');
+      $('#edScore .star').onclick = function () { toggleSaved(sess, t).then(panel); };
       $('#edStats').innerHTML = statsGrid(d, st);
       $('#delShot').disabled = E.sel < 0;
       $('#undoBtn').disabled = !E.undo.length;
@@ -739,6 +816,7 @@
     }
     $('#delTarget').onclick = function () {
       if (!confirm('Delete this target?')) return;
+      if (t.saved && !confirmDeleteSaved(1, HM.sessShooter(sess))) return;
       sess.targets.splice(sess.targets.indexOf(t), 1);
       HM.store.deleteImage(t.id); save(sess).then(function () { location.hash = '#/s/' + sess.id + '/targets'; });
     };
@@ -784,6 +862,7 @@
       makeDemo().then(function (s) { demoRunning = false; location.replace('#/s/' + s.id); }, function () { demoRunning = false; });
       return;
     }
+    if (h[0] === 'saved') { viewSaved(h[1] ? decodeURIComponent(h[1]) : null); window.scrollTo(0, 0); return; }
     if (h[0] === 's') {
       var sess = findSession(h[1]);
       if (!sess) { location.hash = '#/'; return; }
