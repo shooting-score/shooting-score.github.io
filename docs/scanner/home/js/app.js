@@ -23,8 +23,16 @@
     return all;
   }
   // One line describing who shot the session and with what, e.g. "Me · Walther LP500 · 4,5 mm".
+  // The session's own discipline name (free text, optional) followed by the target type.
+  function discLine(s) { return [s.disciplineName, HM.sessDisc(s).name].filter(Boolean).join(' · '); }
   function shooterLine(s) { return [HM.sessShooter(s), s.gun, HM.sessCaliber(s).name].filter(Boolean).join(' · '); }
-  function uniq(list) { var seen = {}; return list.filter(function (x) { if (!x || seen[x.toLowerCase()]) return false; seen[x.toLowerCase()] = 1; return true; }); }
+  // Same name typed in different case counts once; a spelling that starts with a capital letter is preferred.
+  function nicer(a, b) { return !a || (b && a.charAt(0) === a.charAt(0).toLowerCase() && b.charAt(0) !== b.charAt(0).toLowerCase()) ? b : a; }
+  function uniq(list) {
+    var seen = {}, order = [];
+    list.forEach(function (x) { if (!x) return; var k = x.toLowerCase(); if (!(k in seen)) order.push(k); seen[k] = nicer(seen[k], x); });
+    return order.map(function (k) { return seen[k]; });
+  }
   function save(sess) { sess.updated = Date.now(); return HM.store.saveSession(sess); }
   var saveTimer = null;
   function saveSoon(sess) { clearTimeout(saveTimer); saveTimer = setTimeout(function () { save(sess); }, 300); }
@@ -99,7 +107,7 @@
   document.getElementById('sessionCancel').addEventListener('click', function () { dlg.close(); });
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    var v = { name: form.name.value.trim() || 'Training', shooter: form.shooter.value.trim() || 'Me', gun: form.gun.value.trim(), caliber: form.caliber.value, date: form.date.value || today(), discipline: form.discipline.value, shots: Math.max(1, Math.min(60, +form.shots.value || 5)), notes: form.notes.value.trim() };
+    var v = { name: form.name.value.trim() || 'Training', disciplineName: form.disciplineName.value.trim(), shooter: form.shooter.value.trim() || 'Me', gun: form.gun.value.trim(), caliber: form.caliber.value, date: form.date.value || today(), discipline: form.discipline.value, shots: Math.max(1, Math.min(60, +form.shots.value || 5)), notes: form.notes.value.trim() };
     dlg.close();
     if (dlgDone) dlgDone(v);
   });
@@ -111,11 +119,13 @@
     form.discipline.value = sess ? sess.discipline : (localStorage.getItem('hm-last-disc') || 'ap10');
     form.shooter.value = sess ? HM.sessShooter(sess) : 'Me';
     form.gun.value = sess ? (sess.gun || '') : '';
+    form.disciplineName.value = sess ? (sess.disciplineName || '') : '';
     form.caliber.value = sess ? HM.sessCaliber(sess).id : HM.defaultCaliber(HM.disc(form.discipline.value));
     form.dataset.calTouched = '';
     // Suggest shooters and guns used before.
     var opt = function (x) { return '<option value="' + esc(x) + '"></option>'; };
     document.getElementById('shooterList').innerHTML = uniq(['Me'].concat(S.sessions.map(HM.sessShooter))).map(opt).join('');
+    document.getElementById('disciplineList').innerHTML = uniq(S.sessions.map(function (s) { return s.disciplineName; })).map(opt).join('');
     document.getElementById('gunList').innerHTML = uniq(S.sessions.map(function (s) { return s.gun; })).map(opt).join('');
     form.shots.value = sess ? sess.shots : HM.disc(form.discipline.value).shots;
     form.notes.value = sess ? (sess.notes || '') : '';
@@ -125,7 +135,7 @@
   }
 
   function newSession(v) {
-    var sess = { id: HM.uid(), name: v.name, shooter: v.shooter, gun: v.gun, caliber: v.caliber, date: v.date, discipline: v.discipline, shots: v.shots, notes: v.notes, targets: [], created: Date.now() };
+    var sess = { id: HM.uid(), name: v.name, disciplineName: v.disciplineName, shooter: v.shooter, gun: v.gun, caliber: v.caliber, date: v.date, discipline: v.discipline, shots: v.shots, notes: v.notes, targets: [], created: Date.now() };
     try { localStorage.setItem('hm-last-disc', v.discipline); } catch (e) { /* private mode */ }
     S.sessions.unshift(sess);
     return save(sess).then(function () { return sess; });
@@ -289,29 +299,31 @@
   });
 
   /* ---------- views ---------- */
-  // Sessions-page filter. '' means "all"; shooter and gun compare ignoring case, 'g:' is a session without a gun.
-  var LF = { shooter: '', gun: '', caliber: '' };
+  // Sessions-page filter. '' means "all"; names compare ignoring case, 'g:' / 'd:' is a session without a gun / discipline.
+  var LF = { disc: '', shooter: '', gun: '', caliber: '' };
+  var LF_FIELDS = ['disc', 'shooter', 'gun', 'caliber'];
   try { Object.assign(LF, JSON.parse(localStorage.getItem('hm-list-filter')) || {}); } catch (e) { /* none saved */ }
-  function lfKeys(s) { return { shooter: HM.sessShooter(s).toLowerCase(), gun: 'g:' + (s.gun || '').toLowerCase(), caliber: HM.sessCaliber(s).id }; }
-  function lfMatch(s) { var k = lfKeys(s); return ['shooter', 'gun', 'caliber'].every(function (f) { return !LF[f] || LF[f] === k[f]; }); }
+  function lfKeys(s) { return { disc: 'd:' + (s.disciplineName || '').toLowerCase(), shooter: HM.sessShooter(s).toLowerCase(), gun: 'g:' + (s.gun || '').toLowerCase(), caliber: HM.sessCaliber(s).id }; }
+  function lfMatch(s) { var k = lfKeys(s); return LF_FIELDS.every(function (f) { return !LF[f] || LF[f] === k[f]; }); }
   function filterBar() {
-    var opts = { shooter: {}, gun: {}, caliber: {} };
+    var opts = { disc: {}, shooter: {}, gun: {}, caliber: {} };
     S.sessions.forEach(function (s) {
       var k = lfKeys(s);
-      opts.shooter[k.shooter] = opts.shooter[k.shooter] || HM.sessShooter(s);
-      opts.gun[k.gun] = opts.gun[k.gun] || s.gun || 'No gun';
+      opts.disc[k.disc] = nicer(opts.disc[k.disc], s.disciplineName || 'No discipline');
+      opts.shooter[k.shooter] = nicer(opts.shooter[k.shooter], HM.sessShooter(s));
+      opts.gun[k.gun] = nicer(opts.gun[k.gun], s.gun || 'No gun');
       opts.caliber[k.caliber] = HM.sessCaliber(s).name;
     });
     // Forget a saved choice that no session has any more.
-    ['shooter', 'gun', 'caliber'].forEach(function (f) { if (LF[f] && !opts[f][LF[f]]) LF[f] = ''; });
+    LF_FIELDS.forEach(function (f) { if (LF[f] && !opts[f][LF[f]]) LF[f] = ''; });
     var order = { caliber: HM.CALIBERS.map(function (c) { return c.id; }) };
     var sel = function (f, label, all) {
       var keys = Object.keys(opts[f]);
-      keys.sort(f === 'caliber' ? function (a, b) { return order.caliber.indexOf(a) - order.caliber.indexOf(b); } : function (a, b) { return (a === 'g:') - (b === 'g:') || opts[f][a].localeCompare(opts[f][b]); });
+      keys.sort(f === 'caliber' ? function (a, b) { return order.caliber.indexOf(a) - order.caliber.indexOf(b); } : function (a, b) { return (a === 'g:' || a === 'd:') - (b === 'g:' || b === 'd:') || opts[f][a].localeCompare(opts[f][b]); });
       return '<label class="filter">' + label + '<select data-f="' + f + '"><option value="">' + all + '</option>' +
         keys.map(function (k) { return '<option value="' + esc(k) + '"' + (LF[f] === k ? ' selected' : '') + '>' + esc(opts[f][k]) + '</option>'; }).join('') + '</select></label>';
     };
-    return '<section class="list-filter">' + sel('shooter', 'Shooter', 'All shooters') + sel('gun', 'Gun', 'All guns') + sel('caliber', 'Caliber', 'All calibers') + '</section>';
+    return '<section class="list-filter">' + sel('disc', 'Discipline', 'All disciplines') + sel('shooter', 'Shooter', 'All shooters') + sel('gun', 'Gun', 'All guns') + sel('caliber', 'Caliber', 'All calibers') + '</section>';
   }
 
   /* ---------- theme ---------- */
@@ -339,7 +351,7 @@
       else html += '<ul class="list">' + shown.map(function (s) {
         var d = HM.sessDisc(s), st = HM.stats(d, sessionShots(s));
         return '<li><a href="#/s/' + s.id + '" class="list-item"><canvas class="mini" data-sid="' + s.id + '" width="56" height="56"></canvas>' +
-          '<span class="li-main"><strong>' + esc(s.name) + '</strong><span class="muted">' + esc(d.name) + '</span><span class="muted small">' + esc(shooterLine(s)) + '</span><span class="muted small">' + esc(fmtDate(s.date)) + ' · ' + s.targets.length + ' target' + (s.targets.length === 1 ? '' : 's') + ' · ' + st.n + ' shots</span></span>' +
+          '<span class="li-main"><strong>' + esc(s.name) + '</strong><span class="muted">' + esc(discLine(s)) + '</span><span class="muted small">' + esc(shooterLine(s)) + '</span><span class="muted small">' + esc(fmtDate(s.date)) + ' · ' + s.targets.length + ' target' + (s.targets.length === 1 ? '' : 's') + ' · ' + st.n + ' shots</span></span>' +
           '<span class="li-score"><b>' + HM.fmtScore(st) + '</b><small>' + (st.n ? st.avgDec.toFixed(1) + ' avg' : '') + '</small></span></a></li>';
       }).join('') + '</ul>';
     }
@@ -354,7 +366,7 @@
     $('#newBtn').onclick = create; $('#newBtn2').onclick = create;
     var setFilter = function () { try { localStorage.setItem('hm-list-filter', JSON.stringify(LF)); } catch (e) { /* private mode */ } viewSessions(); };
     main.querySelectorAll('.list-filter select').forEach(function (el) { el.onchange = function () { LF[el.dataset.f] = el.value; setFilter(); }; });
-    if ($('#clearFilter')) $('#clearFilter').onclick = function () { LF = { shooter: '', gun: '', caliber: '' }; setFilter(); };
+    if ($('#clearFilter')) $('#clearFilter').onclick = function () { LF = { disc: '', shooter: '', gun: '', caliber: '' }; setFilter(); };
     $('#demoBtn').onclick = function () { location.hash = '#/demo'; };
     $('#exportBtn').onclick = exportAll;
     $('#themeSeg').onclick = function (e) {
@@ -370,7 +382,7 @@
     var d = HM.sessDisc(sess);
     setBar('<a class="bar-link" href="#/">&#8249; Sessions</a>', sess.name, '<button class="bar-btn" id="editSess">Edit</button>');
     var all = sessionShots(sess), st = HM.stats(d, all);
-    var html = '<section class="card sess-head"><div><div><strong>' + esc(shooterLine(sess)) + '</strong></div><div class="muted">' + esc(d.name) + ' · ' + esc(fmtDate(sess.date)) + ' · ' + sess.shots + ' shots per target</div>' +
+    var html = '<section class="card sess-head"><div><div><strong>' + esc(shooterLine(sess)) + '</strong></div><div class="muted">' + esc(discLine(sess)) + ' · ' + esc(fmtDate(sess.date)) + ' · ' + sess.shots + ' shots per target</div>' +
       (sess.notes ? '<div class="small muted">' + esc(sess.notes) + '</div>' : '') + '</div>' +
       '<div class="big-score"><b>' + HM.fmtScore(st) + '</b><span>' + st.totalDec.toFixed(1) + ' · ' + st.n + ' shots · ' + sess.targets.length + ' targets</span></div></section>' +
       '<section class="add-row"><button class="btn primary" id="camBtn">&#128247; Take photo</button><button class="btn" id="upBtn">Upload photo</button><button class="btn" id="smpBtn">Sample photo</button><button class="btn" id="manBtn">Plot by hand</button></section>' +
@@ -404,9 +416,11 @@
           '<option value="shooter">' + esc(HM.sessShooter(sess)) + '</option>' +
           '<option value="gun">' + esc(HM.sessShooter(sess)) + ' · ' + esc(sess.gun || 'no gun given') + '</option>' +
           '<option value="caliber">' + esc(shooterLine(Object.assign({}, sess, { gun: sess.gun || 'no gun given' }))) + '</option>' +
-        '</select></label></div>' +
+        '</select></label>' +
+        '<label class="filter">Discipline <select id="discSel"><option value="all">Any discipline</option><option value="same">' +
+          (sess.disciplineName ? 'Only ' + esc(sess.disciplineName) : 'Only sessions without a discipline') + '</option></select></label></div>' +
         '<div class="side"><h3>Where your hits land</h3><p id="heatCap" class="muted"></p><div id="heatStats"></div>' +
-        '<p class="small muted">Red and yellow show where most shots landed; dark blue means no hits. Day ranges include every session with this target type (and its training card); use the list below them to keep only one shooter, gun or caliber.</p></div></section>';
+        '<p class="small muted">Red and yellow show where most shots landed; dark blue means no hits. Day ranges include every session with this target type (and its training card); use the lists below them to keep only one discipline, shooter, gun or caliber.</p></div></section>';
     }
     html += '<div class="row footer-row"><button class="btn small danger" id="delSess">Delete session</button></div>';
     main.innerHTML = html;
@@ -414,7 +428,7 @@
     $('#editSess').onclick = function () {
       openSessionDialog(sess, function (v) {
         sess.name = v.name; sess.date = v.date; sess.shots = v.shots; sess.notes = v.notes;
-        sess.shooter = v.shooter; sess.gun = v.gun; sess.caliber = v.caliber;
+        sess.disciplineName = v.disciplineName; sess.shooter = v.shooter; sess.gun = v.gun; sess.caliber = v.caliber;
         if (v.discipline !== sess.discipline) {
           if (sess.targets.length && !HM.sameRings(HM.disc(sess.discipline), HM.disc(v.discipline)) && !confirm('Change the target type? Shots keep their place on the pictures but rings are measured again.')) { save(sess).then(route); return; }
           var od = HM.sessDisc(sess), nd = HM.disc(v.discipline);
@@ -445,7 +459,9 @@
     } else if (tab === 'targets') {
       redraw = function () { main.querySelectorAll('canvas.tplot').forEach(function (c) { var t = sess.targets.filter(function (x) { return x.id === c.dataset.t; })[0]; drawMini(c, sess, [t], { zoom: 0, centre: true }); }); };
     } else {
-      var days = 0, who = 'all', hc = $('#heatCv');
+      var days = 0, who = 'all', discOnly = false, hc = $('#heatCv');
+      var myDisc = (sess.disciplineName || '').toLowerCase();
+      var sameDisc = function (s) { return !discOnly || (s.disciplineName || '').toLowerCase() === myDisc; };
       var key = function (s) { return { shooter: HM.sessShooter(s).toLowerCase(), gun: (s.gun || '').toLowerCase(), caliber: HM.sessCaliber(s).id }; };
       var me = key(sess);
       var sameWho = function (s) {
@@ -460,7 +476,7 @@
         if (days !== 0) {
           var lim = days > 0 ? new Date(Date.now() - days * 86400000) : null;
           sessions = S.sessions.filter(function (s) {
-            if (!HM.sameRings(HM.disc(s.discipline), HM.disc(sess.discipline)) || !sameWho(s)) return false;
+            if (!HM.sameRings(HM.disc(s.discipline), HM.disc(sess.discipline)) || !sameWho(s) || !sameDisc(s)) return false;
             if (!lim) return true;
             var p = (s.date || '').split('-'); return new Date(+p[0], +p[1] - 1, +p[2]) >= new Date(lim.getFullYear(), lim.getMonth(), lim.getDate());
           });
@@ -471,12 +487,14 @@
         pts.forEach(function (p) { ext = Math.max(ext, Math.abs(p.x) + d.cal * 2, Math.abs(p.y) + d.cal * 2); });
         ext = Math.min(ext, HM.viewR(d));
         HM.drawHeatmap(ctx, d, HM.fitMap(w, h, ext), pts, w, h);
-        $('#heatCap').textContent = 'Distribution of ' + pts.length + ' shot' + (pts.length === 1 ? '' : 's') + (days === 0 ? ' in this session.' : (days > 0 ? ' from the last ' + days + ' days' : ' from all sessions') + (who === 'all' ? '' : ' by ' + $('#whoSel').selectedOptions[0].textContent) + ' (' + sessions.length + ' session' + (sessions.length === 1 ? '' : 's') + ').');
+        $('#heatCap').textContent = 'Distribution of ' + pts.length + ' shot' + (pts.length === 1 ? '' : 's') + (days === 0 ? ' in this session.' : (days > 0 ? ' from the last ' + days + ' days' : ' from all sessions') + (discOnly ? (myDisc ? ' in ' + sess.disciplineName : ' without a discipline') : '') + (who === 'all' ? '' : ' by ' + $('#whoSel').selectedOptions[0].textContent) + ' (' + sessions.length + ' session' + (sessions.length === 1 ? '' : 's') + ').');
         $('#heatStats').innerHTML = statsGrid(d, hst);
       };
+      // A filter only makes sense across sessions, so picking one leaves "This session" for "All".
+      var widen = function (on) { if (days === 0 && on) { days = -1; $('#scopeSeg').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x.dataset.d === '-1'); }); } };
+      $('#discSel').onchange = function () { discOnly = this.value === 'same'; widen(discOnly); redraw(); };
       $('#whoSel').onchange = function () {
         who = this.value;
-        // A shooter filter only makes sense across sessions, so leave "This session" for "All".
         if (days === 0 && who !== 'all') { days = -1; $('#scopeSeg').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x.dataset.d === '-1'); }); }
         redraw();
       };
