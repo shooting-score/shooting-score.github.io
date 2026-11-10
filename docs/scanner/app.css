@@ -179,6 +179,8 @@ h2 { font-size: 20px; } h3 { font-size: 16px; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 8px; }
 .toolbar + .canvas-wrap { margin-top: 0; }
 .canvas-wrap { position: relative; border-radius: 10px; overflow: hidden; background: #3a3a3c; margin-bottom: 8px; }
+/* iOS: a long-press on the picture must move a hit, not start selecting the picture or open the callout menu. */
+.canvas-wrap { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 #edCv { display: block; width: 100%; touch-action: none; outline: none; }
 .zoom { position: absolute; right: 8px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
 .zoom button { width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.92); color: #1f1f1f; font-size: 20px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
