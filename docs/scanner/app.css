@@ -204,7 +204,8 @@ h2 { font-size: 20px; } h3 { font-size: 16px; }
 .dlg input, .dlg select, .dlg textarea { font: inherit; font-size: 16px; padding: 8px 10px; border: 1px solid var(--field-line); border-radius: 8px; color: var(--text); background: var(--field); width: 100%; }
 .dlg .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dlg label small { font-size: 11px; }
-.list-filter { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.list-filter { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+@media (max-width: 560px) { .list-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .list-filter .filter { margin: 0; }
 .list-filter select { width: 100%; }
 .list-count { margin: 0 0 8px; }

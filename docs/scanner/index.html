@@ -26,12 +26,13 @@ try { var t = localStorage.getItem('hm-theme'); if (t === 'light' || t === 'dark
   <form method="dialog" id="sessionForm">
     <h2 id="sessionDialogTitle">New session</h2>
     <label>Name<input name="name" required maxlength="60" placeholder="Training"></label>
+    <label><span>Discipline <small>(optional)</small></span><input name="disciplineName" maxlength="60" placeholder="e.g. Precision, Rapid fire, Field" list="disciplineList" autocomplete="off"></label>
     <label>Shooter<input name="shooter" required maxlength="60" placeholder="Me" list="shooterList" autocomplete="off"></label>
     <div class="pair">
       <label><span>Gun <small>(optional)</small></span><input name="gun" maxlength="60" placeholder="e.g. Walther LP500" list="gunList" autocomplete="off"></label>
       <label>Caliber<select name="caliber" id="caliberSelect" required></select></label>
     </div>
-    <datalist id="shooterList"></datalist><datalist id="gunList"></datalist>
+    <datalist id="shooterList"></datalist><datalist id="gunList"></datalist><datalist id="disciplineList"></datalist>
     <label>Date<input name="date" type="date" required></label>
     <label>Target type<select name="discipline" id="disciplineSelect"></select></label>
     <label>Shots per target<input name="shots" type="number" min="1" max="60" required></label>
