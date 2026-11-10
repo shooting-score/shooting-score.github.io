@@ -695,6 +695,12 @@
     cv.addEventListener('pointerup', endPointer);
     cv.addEventListener('pointercancel', endPointer);
     cv.addEventListener('wheel', function (e) { e.preventDefault(); var p = pos(e); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, p.x, p.y); }, { passive: false });
+    // iOS starts its own long-press selection and magnifier unless the native touch is cancelled.
+    // Pointer events still arrive, so dragging, adding, panning and pinch zoom work as before.
+    var noNative = function (e) { e.preventDefault(); };
+    cv.addEventListener('touchstart', noNative, { passive: false });
+    cv.addEventListener('touchmove', noNative, { passive: false });
+    cv.addEventListener('contextmenu', noNative);
 
     function deleteSel() { if (E.sel < 0) return; pushUndo(); t.shots.splice(E.sel, 1); E.sel = -1; changed(); }
     function undo() { var u = E.undo.pop(); if (!u) return; var o = JSON.parse(u); t.shots = o.shots; t.calib = o.calib; E.sel = -1; changed(); }
